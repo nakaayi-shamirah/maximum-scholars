@@ -20,7 +20,7 @@ export default function Login() {
     useState("");
 
   const API =
-    "http://127.0.0.1:5000";
+    "https://maximum-scholars.onrender.com";
 
   const handleLogin =
     async (e) => {
