@@ -9,7 +9,7 @@ const sequelize =
   require("./utils/database");
 
 const User =
-  require("./models/User");
+  require("./models/user");
 
 require("./models/Material");
 
