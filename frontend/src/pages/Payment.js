@@ -59,7 +59,7 @@ export default function Payment() {
 
         const res =
           await fetch(
-            "http://127.0.0.1:5000/api/payment/request",
+            "https://maximum-scholars-1-api.onrender.com",
             {
               method: "POST",
               headers: {
