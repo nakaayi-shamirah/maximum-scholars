@@ -20,7 +20,7 @@ export default function Login() {
     useState("");
 
   const API =
-    "https://maximum-scholars.onrender.com";
+    "https://maximum-scholars-1-api.onrender.com";
 
   const handleLogin =
     async (e) => {
