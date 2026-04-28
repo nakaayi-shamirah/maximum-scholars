@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 export default function Admin() {
   const navigate = useNavigate();
-  const API = "http://127.0.0.1:5000";
+  const API = "https://maximum-scholars-1-api.onrender.com";
 
   const [active, setActive] =
     useState("dashboard");
