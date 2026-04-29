@@ -97,7 +97,7 @@ export default function Register() {
       try {
         const res =
           await fetch(
-            "https://maximum-scholars-1-api.onrender.com",
+            "https://maximum-scholars-1-api.onrender.com/api/auth/register",
             {
               method:
                 "POST",
