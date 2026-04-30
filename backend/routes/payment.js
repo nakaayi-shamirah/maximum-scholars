@@ -156,4 +156,20 @@ router.post("/request", async (req, res) => {
   }
 });
 
+// GET ALL PAYMENTS (ADMIN)
+router.get("/", async (req, res) => {
+  try {
+    const payments = await Payment.findAll({
+      order: [["createdAt", "DESC"]],
+    });
+
+    res.json(payments);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "Failed to fetch payments",
+    });
+  }
+});  
 module.exports = router;
