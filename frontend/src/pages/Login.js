@@ -4,213 +4,142 @@ import { useNavigate } from "react-router-dom";
 export default function Login() {
   const navigate = useNavigate();
 
-  const [email, setEmail] =
-    useState("");
-
-  const [password, setPassword] =
-    useState("");
-
-  const [showPassword, setShowPassword] =
-    useState(false);
-
-  const [loading, setLoading] =
-    useState(false);
-
-  const [error, setError] =
-    useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const API =
     "https://maximum-scholars-1-api.onrender.com";
 
-  const handleLogin =
-    async (e) => {
-      e.preventDefault();
+  const handleLogin = async (e) => {
+    e.preventDefault();
 
-      setError("");
+    setError("");
 
-      if (
-        !email.trim() ||
-        !password.trim()
-      ) {
-        setError(
-          "Enter email and password."
+    if (!email.trim() || !password.trim()) {
+      setError("Enter email and password.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      // ✅ Timeout (fix Render sleeping issues)
+      const controller = new AbortController();
+      const timeout = setTimeout(
+        () => controller.abort(),
+        15000
+      );
+
+      const res = await fetch(
+        `${API}/api/login`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email,
+            password,
+          }),
+          signal: controller.signal,
+        }
+      );
+
+      clearTimeout(timeout);
+
+      // ✅ Safe JSON parsing
+      let data;
+      try {
+        data = await res.json();
+      } catch (err) {
+        throw new Error(
+          "Server returned invalid response"
         );
+      }
+
+      // ✅ Proper error handling
+      if (!res.ok) {
+        throw new Error(
+          data.message || "Login failed"
+        );
+      }
+
+      const user = data.user;
+      const token = data.token;
+
+      const sub =
+        typeof user.subscription === "string"
+          ? JSON.parse(user.subscription)
+          : user.subscription || {};
+
+      /* SAVE SESSION */
+      localStorage.setItem("token", token);
+      localStorage.setItem("role", user.role);
+      localStorage.setItem(
+        "user",
+        JSON.stringify(user)
+      );
+      localStorage.setItem(
+        "subjects",
+        JSON.stringify(user.subjects || [])
+      );
+
+      /* PAYMENT STATUS */
+      if (sub.status === "approved") {
+        localStorage.setItem("paid", "true");
+      } else {
+        localStorage.removeItem("paid");
+      }
+
+      /* EXPIRY CHECK */
+      if (sub.expiresAt) {
+        const today = new Date();
+        const expiry = new Date(sub.expiresAt);
+
+        if (today > expiry) {
+          alert(
+            "Subscription expired. Renew access."
+          );
+
+          localStorage.removeItem("paid");
+          navigate("/subjects");
+          return;
+        }
+      }
+
+      /* ROUTING */
+      if (user.role === "admin") {
+        navigate("/admin");
         return;
       }
 
-      try {
-        setLoading(true);
-
-        const res =
-          await fetch(
-            `${API}/api/login`,
-            {
-              method:
-                "POST",
-              headers: {
-                "Content-Type":
-                  "application/json"
-              },
-              body: JSON.stringify(
-                {
-                  email,
-                  password
-                }
-              )
-            }
-          );
-
-        const data =
-          await res.json();
-
-        if (!res.ok) {
-          setError(
-            data.message ||
-              "Login failed."
-          );
-          return;
-        }
-
-        const user =
-          data.user;
-
-        const token =
-          data.token;
-
-        const sub =
-          typeof user
-            .subscription ===
-          "string"
-            ? JSON.parse(
-                user.subscription
-              )
-            : user
-                .subscription ||
-              {};
-
-        /* SAVE SESSION */
-        localStorage.setItem(
-          "token",
-          token
-        );
-
-        localStorage.setItem(
-          "role",
-          user.role
-        );
-
-        localStorage.setItem(
-          "user",
-          JSON.stringify(
-            user
-          )
-        );
-
-        localStorage.setItem(
-          "subjects",
-          JSON.stringify(
-            user.subjects ||
-              []
-          )
-        );
-
-        /* PAYMENT STATUS */
-        if (
-          sub.status ===
-          "approved"
-        ) {
-          localStorage.setItem(
-            "paid",
-            "true"
-          );
-        } else {
-          localStorage.removeItem(
-            "paid"
-          );
-        }
-
-        /* EXPIRY CHECK */
-        if (
-          sub.expiresAt
-        ) {
-          const today =
-            new Date();
-
-          const expiry =
-            new Date(
-              sub.expiresAt
-            );
-
-          if (
-            today > expiry
-          ) {
-            alert(
-              "Subscription expired. Renew access."
-            );
-
-            localStorage.removeItem(
-              "paid"
-            );
-
-            navigate(
-              "/subjects"
-            );
-
-            return;
-          }
-        }
-
-        /* ROUTING */
-        if (
-          user.role ===
-          "admin"
-        ) {
-          navigate(
-            "/admin"
-          );
-          return;
-        }
-
-        if (
-          user.role ===
-          "teacher"
-        ) {
-          navigate(
-            "/teacher"
-          );
-          return;
-        }
-
-        if (
-          sub.status ===
-          "approved"
-        ) {
-          navigate(
-            "/dashboard"
-          );
-        } else {
-          navigate(
-            "/subjects"
-          );
-        }
-
-      } catch (
-        error
-      ) {
-        console.error(
-          error
-        );
-
-        setError(
-          "Unable to connect to server."
-        );
-
-      } finally {
-        setLoading(
-          false
-        );
+      if (user.role === "teacher") {
+        navigate("/teacher");
+        return;
       }
-    };
+
+      if (sub.status === "approved") {
+        navigate("/dashboard");
+      } else {
+        navigate("/subjects");
+      }
+
+    } catch (error) {
+      console.error(error);
+
+      // ✅ Better error message
+      setError(
+        error.message ||
+          "Unable to connect to server."
+      );
+
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-700 to-indigo-900 px-4">
@@ -218,7 +147,6 @@ export default function Login() {
       <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl p-8">
 
         <div className="text-center mb-8">
-
           <h1 className="text-3xl font-bold text-blue-700">
             Maximum Scholars
           </h1>
@@ -226,7 +154,6 @@ export default function Login() {
           <p className="text-gray-500 mt-2">
             Welcome back
           </p>
-
         </div>
 
         {error && (
@@ -236,9 +163,7 @@ export default function Login() {
         )}
 
         <form
-          onSubmit={
-            handleLogin
-          }
+          onSubmit={handleLogin}
           className="space-y-4"
         >
 
@@ -247,15 +172,12 @@ export default function Login() {
             placeholder="Email Address"
             value={email}
             onChange={(e) =>
-              setEmail(
-                e.target.value
-              )
+              setEmail(e.target.value)
             }
             className="w-full p-3 border rounded-xl"
           />
 
           <div className="relative">
-
             <input
               type={
                 showPassword
@@ -263,22 +185,16 @@ export default function Login() {
                   : "password"
               }
               placeholder="Password"
-              value={
-                password
-              }
+              value={password}
               onChange={(e) =>
-                setPassword(
-                  e.target.value
-                )
+                setPassword(e.target.value)
               }
               className="w-full p-3 border rounded-xl"
             />
 
             <span
               onClick={() =>
-                setShowPassword(
-                  !showPassword
-                )
+                setShowPassword(!showPassword)
               }
               className="absolute right-4 top-3 cursor-pointer"
             >
@@ -286,14 +202,11 @@ export default function Login() {
                 ? "🙈"
                 : "👁️"}
             </span>
-
           </div>
 
           <button
             type="submit"
-            disabled={
-              loading
-            }
+            disabled={loading}
             className="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-semibold"
           >
             {loading
@@ -304,33 +217,26 @@ export default function Login() {
         </form>
 
         <div className="text-center mt-6 text-sm">
-
           Don’t have an account?{" "}
 
           <button
             onClick={() =>
-              navigate(
-                "/register"
-              )
+              navigate("/register")
             }
             className="text-blue-600 font-semibold"
           >
             Register
           </button>
-
         </div>
 
         <button
-          onClick={() =>
-            navigate("/")
-          }
+          onClick={() => navigate("/")}
           className="mt-5 w-full border py-3 rounded-xl"
         >
           Back Home
         </button>
 
       </div>
-
     </div>
   );
 }
