@@ -1,3 +1,4 @@
+const auth = required("../middleware/auth");
 const express = require("express");
 const router = express.Router();
 
@@ -402,5 +403,19 @@ router.delete(
     }
   }
 );
+const auth = require("../middleware/auth");
+
+router.get("/me", auth, async (req, res) => {
+  try {
+    const user = await User.findByPk(req.userId);
+
+    res.json(user);
+
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to fetch user",
+    });
+  }
+});
 
 module.exports = router;

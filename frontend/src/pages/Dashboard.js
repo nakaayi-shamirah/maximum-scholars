@@ -48,6 +48,10 @@ export default function Dashboard() {
         "quizResults"
       )
     ) || [];
+    console.log("USER:", user);
+console.log("SUBJECTS:", subjects);
+console.log("MATERIALS:", materials);
+console.log("RESULTS:", results);
 
   const notices =
     JSON.parse(
