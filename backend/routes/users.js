@@ -30,7 +30,6 @@ const verifyToken = (req, res, next) => {
     });
   }
 };
-
 /* ==================================
    EMAIL CONFIG (ENV READY)
 ================================== */
@@ -48,28 +47,6 @@ const transporter =
 /* ==================================
    GET ALL USERS
 ================================== */
-router.get("/", async (req, res) => {
-  try {
-    const users =
-      await User.findAll({
-        order: [
-          ["id", "DESC"]
-        ]
-      });
-
-    res.json(users);
-
-  } catch (error) {
-    console.error(
-      error
-    );
-
-    res.status(500).json({
-      message:
-        "Failed to fetch users"
-    });
-  }
-});
 
 /* ==================================
    GET ONE USER
