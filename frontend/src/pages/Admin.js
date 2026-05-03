@@ -15,6 +15,11 @@ export default function Admin() {
   const [active, setActive] = useState("dashboard");
   const [darkMode, setDarkMode] = useState(false);
   const [search, setSearch] = useState("");
+  const [materials, setMaterals] = useState([]);
+  const students = users.filter((u) => u.role === "student");
+const teachers = users.filter((u) => u.role === "teacher");
+const theme = darkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-black";
+const card = darkMode ? "bg-gray-800 text-white" : "bg-white text-black";
 
   const [teacherForm, setTeacherForm] = useState({
     name: "",
