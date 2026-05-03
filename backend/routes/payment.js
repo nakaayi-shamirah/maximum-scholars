@@ -159,11 +159,11 @@ router.post("/request", async (req, res) => {
 // GET ALL PAYMENTS (ADMIN)
 router.get("/", async (req, res) => {
   try {
-    const payments = await Payment.findAll({
+    const users = await User.findAll({
       order: [["createdAt", "DESC"]],
     });
 
-    res.json(payments);
+    res.json(users);
 
   } catch (error) {
     console.error(error);
