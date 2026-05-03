@@ -145,6 +145,10 @@ export default function Admin() {
     }
   };
 
+  // 🔥 NEW: Payment-specific handlers (same logic but clearer)
+  const approvePayment = (id) => approveUser(id);
+  const rejectPayment = (id) => rejectUser(id);
+
   const deleteUser = async (id) => {
     if (!window.confirm("Delete user?")) return;
     await fetch(`${API}/api/users/${id}`, { method: "DELETE" });
@@ -252,13 +256,17 @@ export default function Admin() {
                 </div>
 
                 <div className="space-x-2">
-                  <button onClick={()=>approveUser(u.id)} className="bg-green-500 text-white px-4 py-2 rounded-xl">
-                    Approve
-                  </button>
+                  {parseSub(u.subscription).status === "pending" && (
+                    <>
+                      <button onClick={()=>approveUser(u.id)} className="bg-green-500 text-white px-4 py-2 rounded-xl">
+                        Approve
+                      </button>
 
-                  <button onClick={()=>rejectUser(u.id)} className="bg-red-500 text-white px-4 py-2 rounded-xl">
-                    Reject
-                  </button>
+                      <button onClick={()=>rejectUser(u.id)} className="bg-red-500 text-white px-4 py-2 rounded-xl">
+                        Reject
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             ))}
@@ -280,11 +288,11 @@ export default function Admin() {
                 </div>
 
                 <div className="space-x-2">
-                  <button onClick={() => approveUser(p.id)} className="bg-green-500 text-white px-4 py-2 rounded-xl">
+                  <button onClick={() => approvePayment(p.userId || p.id)} className="bg-green-500 text-white px-4 py-2 rounded-xl">
                     Approve
                   </button>
 
-                  <button onClick={() => rejectUser(p.id)} className="bg-red-500 text-white px-4 py-2 rounded-xl">
+                  <button onClick={() => rejectPayment(p.userId || p.id)} className="bg-red-500 text-white px-4 py-2 rounded-xl">
                     Reject
                   </button>
                 </div>
