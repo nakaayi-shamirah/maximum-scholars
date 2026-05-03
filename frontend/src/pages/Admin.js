@@ -176,6 +176,80 @@ const res = await fetch(`${API}/api/users`, {
         <h1 className="text-4xl font-bold mb-8">
           Welcome, {admin.name || "Admin"} 👑
         </h1>
+        {/* DASHBOARD */}
+{active === "dashboard" && (
+  <div className="grid md:grid-cols-4 gap-6">
+
+    <div className={`${card} p-6 rounded-2xl shadow`}>
+      <p>Students</p>
+      <h2 className="text-3xl font-bold text-blue-500">
+        {students.length}
+      </h2>
+    </div>
+
+    <div className={`${card} p-6 rounded-2xl shadow`}>
+      <p>Teachers</p>
+      <h2 className="text-3xl font-bold text-green-500">
+        {teachers.length}
+      </h2>
+    </div>
+
+    <div className={`${card} p-6 rounded-2xl shadow`}>
+      <p>Pending</p>
+      <h2 className="text-3xl font-bold text-orange-500">
+        {pending.length}
+      </h2>
+    </div>
+
+    <div className={`${card} p-6 rounded-2xl shadow`}>
+      <p>Approved</p>
+      <h2 className="text-3xl font-bold text-purple-500">
+        {approved.length}
+      </h2>
+    </div>
+
+  </div>
+)}
+{/* USERS */}
+{active === "users" && (
+  <div className={`${card} p-8 rounded-2xl shadow`}>
+
+    <input
+      placeholder="Search users..."
+      value={search}
+      onChange={(e)=>setSearch(e.target.value)}
+      className="w-full border p-3 rounded-xl mb-6 text-black"
+    />
+
+    {filtered.map((u)=>(
+      <div key={u.id} className="border-b py-4 flex justify-between">
+
+        <div>
+          <p className="font-bold">{u.name}</p>
+          <p>{u.email} ({u.role})</p>
+        </div>
+
+        <div className="space-x-2">
+          <button 
+            onClick={()=>approveUser(u.id)} 
+            className="bg-green-500 text-white px-4 py-2 rounded-xl"
+          >
+            Approve
+          </button>
+
+          <button 
+            onClick={()=>rejectUser(u.id)} 
+            className="bg-red-500 text-white px-4 py-2 rounded-xl"
+          >
+            Reject
+          </button>
+        </div>
+
+      </div>
+    ))}
+
+  </div>
+)}
 
         {/* PAYMENTS UI FIXED */}
         {active === "payments" && (
