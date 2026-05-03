@@ -40,7 +40,13 @@ export default function Admin() {
   ========================= */
   const fetchUsers = async () => {
     try {
-      const res = await fetch(`${API}/api/users`);
+    const token = localStorage.getItem("token");
+
+const res = await fetch(`${API}/api/users`, {
+  headers: {
+    Authorization: `Bearer ${token}`,
+  },
+});
       const data = await res.json();
       setUsers(data);
     } catch (error) {
