@@ -27,12 +27,6 @@ export default function Login() {
       setLoading(true);
 
       // ✅ Timeout (fix Render sleeping issues)
-    
-      const timeout = setTimeout(
-      
-        15000
-      );
-
       const res = await fetch(
         `${API}/api/auth/login`,
         {
@@ -47,9 +41,6 @@ export default function Login() {
           
         }
       );
-
-      clearTimeout(timeout);
-
       // ✅ Safe JSON parsing
       let data;
       try {
