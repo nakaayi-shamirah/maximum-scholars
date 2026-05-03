@@ -40,50 +40,52 @@ export default function Admin() {
   ========================= */
   const fetchUsers = async () => {
     try {
-    const token = localStorage.getItem("token");
+      const token = localStorage.getItem("token");
 
-const res = await fetch(`${API}/api/users`, {
-  headers: {
-    Authorization: `Bearer ${token}`,
-  },
-});
+      const res = await fetch(`${API}/api/users`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
       const data = await res.json();
       console.log("USERS:", data);
       setUsers(data);
+
     } catch (error) {
       console.error(error);
     }
   };
 
   /* =========================
-     FETCH PAYMENTS ✅ NEW
+     FETCH PAYMENTS
   ========================= */
- const fetchPayments = async () => {
-  try {
-    const token = localStorage.getItem("token");
+  const fetchPayments = async () => {
+    try {
+      const token = localStorage.getItem("token");
 
-    const res = await fetch(`${API}/api/payments`, {
-      headers: {
-        Authorization: "Bearer " + token,
-      },
-    });
+      const res = await fetch(`${API}/api/payments`, {
+        headers: {
+          Authorization: "Bearer " + token,
+        },
+      });
 
-    const data = await res.json();
+      const data = await res.json();
+      console.log("PAYMENTS:", data);
 
-    console.log("PAYMENTS:", data); // debug
+      setPayments(data);
 
-    setPayments(data);
-  } catch (error) {
-    console.error("PAYMENTS ERROR:", error);
-  }
-};
+    } catch (error) {
+      console.error("PAYMENTS ERROR:", error);
+    }
+  };
 
   /* =========================
      LOAD DATA
   ========================= */
   useEffect(() => {
     fetchUsers();
-    fetchPayments(); // ✅ important
+    fetchPayments();
     setLoading(false);
   }, []);
 
@@ -103,13 +105,44 @@ const res = await fetch(`${API}/api/users`, {
      ACTIONS
   ========================= */
   const approveUser = async (id) => {
-    await fetch(`${API}/api/users/approve/${id}`, { method: "PUT" });
-    fetchUsers();
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await fetch(`${API}/api/users/approve/${id}`, {
+        method: "PUT",
+        headers: {
+          Authorization: "Bearer " + token,
+        },
+      });
+
+      const data = await res.json();
+      console.log("APPROVED:", data);
+
+      fetchUsers();
+      fetchPayments();
+
+    } catch (error) {
+      console.error("APPROVE ERROR:", error);
+    }
   };
 
   const rejectUser = async (id) => {
-    await fetch(`${API}/api/users/reject/${id}`, { method: "PUT" });
-    fetchUsers();
+    try {
+      const token = localStorage.getItem("token");
+
+      await fetch(`${API}/api/users/reject/${id}`, {
+        method: "PUT",
+        headers: {
+          Authorization: "Bearer " + token,
+        },
+      });
+
+      fetchUsers();
+      fetchPayments();
+
+    } catch (error) {
+      console.error("REJECT ERROR:", error);
+    }
   };
 
   const deleteUser = async (id) => {
@@ -156,7 +189,6 @@ const res = await fetch(`${API}/api/users`, {
 
       {/* SIDEBAR */}
       <div className="w-72 bg-gradient-to-b from-indigo-700 to-blue-900 text-white p-6">
-
         <h1 className="text-3xl font-bold mb-8">Admin Panel</h1>
 
         <ul className="space-y-3 text-sm">
@@ -176,116 +208,88 @@ const res = await fetch(`${API}/api/users`, {
         <h1 className="text-4xl font-bold mb-8">
           Welcome, {admin.name || "Admin"} 👑
         </h1>
+
         {/* DASHBOARD */}
-{active === "dashboard" && (
-  <div className="grid md:grid-cols-4 gap-6">
+        {active === "dashboard" && (
+          <div className="grid md:grid-cols-4 gap-6">
+            <div className={`${card} p-6 rounded-2xl shadow`}>
+              <p>Students</p>
+              <h2 className="text-3xl font-bold text-blue-500">{students.length}</h2>
+            </div>
 
-    <div className={`${card} p-6 rounded-2xl shadow`}>
-      <p>Students</p>
-      <h2 className="text-3xl font-bold text-blue-500">
-        {students.length}
-      </h2>
-    </div>
+            <div className={`${card} p-6 rounded-2xl shadow`}>
+              <p>Teachers</p>
+              <h2 className="text-3xl font-bold text-green-500">{teachers.length}</h2>
+            </div>
 
-    <div className={`${card} p-6 rounded-2xl shadow`}>
-      <p>Teachers</p>
-      <h2 className="text-3xl font-bold text-green-500">
-        {teachers.length}
-      </h2>
-    </div>
+            <div className={`${card} p-6 rounded-2xl shadow`}>
+              <p>Pending</p>
+              <h2 className="text-3xl font-bold text-orange-500">{pending.length}</h2>
+            </div>
 
-    <div className={`${card} p-6 rounded-2xl shadow`}>
-      <p>Pending</p>
-      <h2 className="text-3xl font-bold text-orange-500">
-        {pending.length}
-      </h2>
-    </div>
+            <div className={`${card} p-6 rounded-2xl shadow`}>
+              <p>Approved</p>
+              <h2 className="text-3xl font-bold text-purple-500">{approved.length}</h2>
+            </div>
+          </div>
+        )}
 
-    <div className={`${card} p-6 rounded-2xl shadow`}>
-      <p>Approved</p>
-      <h2 className="text-3xl font-bold text-purple-500">
-        {approved.length}
-      </h2>
-    </div>
-
-  </div>
-)}
-{/* USERS */}
-{active === "users" && (
-  <div className={`${card} p-8 rounded-2xl shadow`}>
-
-    <input
-      placeholder="Search users..."
-      value={search}
-      onChange={(e)=>setSearch(e.target.value)}
-      className="w-full border p-3 rounded-xl mb-6 text-black"
-    />
-
-    {filtered.map((u)=>(
-      <div key={u.id} className="border-b py-4 flex justify-between">
-
-        <div>
-          <p className="font-bold">{u.name}</p>
-          <p>{u.email} ({u.role})</p>
-        </div>
-
-        <div className="space-x-2">
-          <button 
-            onClick={()=>approveUser(u.id)} 
-            className="bg-green-500 text-white px-4 py-2 rounded-xl"
-          >
-            Approve
-          </button>
-
-          <button 
-            onClick={()=>rejectUser(u.id)} 
-            className="bg-red-500 text-white px-4 py-2 rounded-xl"
-          >
-            Reject
-          </button>
-        </div>
-
-      </div>
-    ))}
-
-  </div>
-)}
-
-        {/* PAYMENTS UI FIXED */}
-        {active === "payments" && (
+        {/* USERS */}
+        {active === "users" && (
           <div className={`${card} p-8 rounded-2xl shadow`}>
+            <input
+              placeholder="Search users..."
+              value={search}
+              onChange={(e)=>setSearch(e.target.value)}
+              className="w-full border p-3 rounded-xl mb-6 text-black"
+            />
 
-            <h2 className="text-2xl font-bold mb-6">
-              Payment Requests
-            </h2>
-
-            {payments.length === 0 && (
-              <p>No payments yet</p>
-            )}
-
-            {payments.map((p) => (
-              <div key={p.id} className="border-b py-4 flex justify-between">
-
+            {filtered.map((u)=>(
+              <div key={u.id} className="border-b py-4 flex justify-between">
                 <div>
-                  <p className="font-bold">{p.email}</p>
-                  <p>UGX {p.amount}</p>
-                  <p>{p.method}</p>
-                  <p className="text-sm text-gray-500">{p.reference}</p>
+                  <p className="font-bold">{u.name}</p>
+                  <p>{u.email} ({u.role})</p>
                 </div>
 
                 <div className="space-x-2">
-                  <button className="bg-green-500 text-white px-4 py-2 rounded-xl">
+                  <button onClick={()=>approveUser(u.id)} className="bg-green-500 text-white px-4 py-2 rounded-xl">
                     Approve
                   </button>
 
-                  <button className="bg-red-500 text-white px-4 py-2 rounded-xl">
+                  <button onClick={()=>rejectUser(u.id)} className="bg-red-500 text-white px-4 py-2 rounded-xl">
                     Reject
                   </button>
                 </div>
-
               </div>
             ))}
+          </div>
+        )}
 
+        {/* PAYMENTS */}
+        {active === "payments" && (
+          <div className={`${card} p-8 rounded-2xl shadow`}>
+            <h2 className="text-2xl font-bold mb-6">Payment Requests</h2>
+
+            {payments.length === 0 && <p>No payments yet</p>}
+
+            {payments.map((p) => (
+              <div key={p.id} className="border-b py-4 flex justify-between">
+                <div>
+                  <p className="font-bold">{p.email}</p>
+                  <p>UGX {p.amount}</p>
+                </div>
+
+                <div className="space-x-2">
+                  <button onClick={() => approveUser(p.id)} className="bg-green-500 text-white px-4 py-2 rounded-xl">
+                    Approve
+                  </button>
+
+                  <button onClick={() => rejectUser(p.id)} className="bg-red-500 text-white px-4 py-2 rounded-xl">
+                    Reject
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
