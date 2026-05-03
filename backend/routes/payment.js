@@ -1,4 +1,4 @@
-const Payment = require("../models/payment");
+
 const express = require("express");
 const router = express.Router();
 
