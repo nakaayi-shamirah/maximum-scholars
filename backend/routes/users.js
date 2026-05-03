@@ -405,5 +405,28 @@ router.get("/me", verifyToken, async (req, res) => {
     });
   }
 });
+/* =========================
+   GET ALL USERS (ADMIN)
+========================= */
+router.get("/", verifyToken, async (req, res) => {
+  try {
+    // only admin allowed
+    if (req.user.role !== "admin") {
+      return res.status(403).json({
+        message: "Access denied"
+      });
+    }
+
+    const users = await User.findAll();
+
+    return res.json(users);
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      message: "Failed to fetch users"
+    });
+  }
+});
 
 module.exports = router;
