@@ -369,51 +369,39 @@ router.put(
   }
 );
 
-/* ==================================
-   DELETE USER
-================================== */
-router.delete(
-  "/:id",
-  async (req, res) => {
-    try {
-      const user =
-        await User.findByPk(
-          req.params.id
-        );
+/* =========================
+   GET CURRENT USER
+========================= */
+router.get("/me", verifyToken, async (req, res) => {
+  try {
+    console.log("TOKEN USER ID:", req.user.id);
 
-      if (!user) {
-        return res.status(404).json({
-          message:
-            "User not found"
-        });
-      }
+    const user = await User.findOne({
+      where: { id: req.user.id }
+    });
 
-      await user.destroy();
-
-      res.json({
-        message:
-          "User deleted successfully"
-      });
-
-    } catch (error) {
-      res.status(500).json({
-        message:
-          "Failed to delete user"
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found"
       });
     }
-  }
-);
 
-router.get("/me", auth, async (req, res) => {
-  try {
-    console.log("TOKEN USER ID", req.user.id);
-    const user = await User.findByPk(req.userId);
-
-    res.json(user);
+    return res.json({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      school: user.school,
+      subjects: user.subjects || [],
+      assignedSubjects: user.assignedSubjects || [],
+      photo: user.photo || "",
+      subscription: user.subscription || {}
+    });
 
   } catch (error) {
-    res.status(500).json({
-      message: "Failed to fetch user",
+    console.error("ME ERROR:", error);
+    return res.status(500).json({
+      message: "Failed to get user"
     });
   }
 });
