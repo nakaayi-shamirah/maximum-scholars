@@ -1,3 +1,4 @@
+const Payment = require("../models/payment");
 const express = require("express");
 const router = express.Router();
 
@@ -34,20 +35,25 @@ router.post("/request", async (req, res) => {
     /* =========================
        VALIDATION
     ========================= */
-    if (
-      !userId ||
-      !email ||
-      !plan ||
-      !amount ||
-      !subjects ||
-      !method ||
-      !phone ||
-      !reference
-    ) {
-      return res.status(400).json({
-        message: "Missing required fields"
-      });
-    }
+  if (
+  !userId ||
+  !email ||
+  !plan ||
+  !amount ||
+  !subjects ||
+  !method ||
+  !phone ||
+  !reference
+) {
+  console.log("❌ Missing fields:", {
+    userId, email, plan, amount, subjects, method, phone, reference
+  });
+
+  return res.status(400).json({
+    message: "Missing required fields"
+  });
+}
+console.log("📩 PAYMENT REQUEST BODY:", req.body);
 
     /* =========================
        FIND USER

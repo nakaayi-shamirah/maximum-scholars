@@ -190,15 +190,15 @@ export default function Payment() {
 
               <div className="border rounded-2xl p-4">
                 <p className="font-semibold text-red-500">
-                  Airtel Money
+                 
                 </p>
 
                 <p>
-                  0709634560
+                  
                 </p>
 
                 <p className="text-sm text-gray-500">
-                  SSENDIWALA JOSHUA
+                  
                 </p>
               </div>
 
@@ -234,21 +234,6 @@ export default function Payment() {
               MTN
             </button>
 
-            <button
-              onClick={() =>
-                setMethod(
-                  "Airtel Money"
-                )
-              }
-              className={`p-4 rounded-2xl border font-semibold ${
-                method ===
-                "Airtel Money"
-                  ? "bg-red-500 text-white"
-                  : ""
-              }`}
-            >
-              Airtel
-            </button>
 
           </div>
 

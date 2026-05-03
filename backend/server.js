@@ -78,7 +78,7 @@ app.use(
 );
 
 app.use(
-  "/api/payments",
+  "/api/payment",
   require("./routes/payment")
 );
 
