@@ -4,6 +4,32 @@ const router = express.Router();
 
 const User = require("../models/user");
 const nodemailer = require("nodemailer");
+const verifyToken = (req, res, next) => {
+  try {
+    const header = req.headers.authorization;
+
+    if (!header) {
+      return res.status(401).json({
+        message: "No token provided",
+      });
+    }
+
+    const token = header.split(" ")[1];
+
+    const decoded = require("jsonwebtoken").verify(
+      token,
+      process.env.JWT_SECRET || "secret123"
+    );
+
+    req.user = decoded;
+
+    next();
+  } catch (error) {
+    return res.status(401).json({
+      message: "Invalid token",
+    });
+  }
+};
 
 /* ==================================
    EMAIL CONFIG (ENV READY)
