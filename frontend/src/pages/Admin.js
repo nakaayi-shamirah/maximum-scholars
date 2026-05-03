@@ -327,3 +327,144 @@ export default function Admin() {
     </div>
   );
 }
+
+{/* TEACHERS */}
+{active === "teachers" && (
+  <div className={`${card} p-8 rounded-2xl shadow`}>
+    <h2 className="text-2xl font-bold mb-6">Teachers</h2>
+
+    {teachers.length === 0 && <p>No teachers found</p>}
+
+    {teachers.map((t) => (
+      <div key={t.id} className="border-b py-4 flex justify-between">
+        <div>
+          <p className="font-bold">{t.name}</p>
+          <p className="text-sm text-gray-500">{t.email}</p>
+        </div>
+
+        <button
+          onClick={() => deleteUser(t.id)}
+          className="bg-red-500 text-white px-4 py-2 rounded-xl"
+        >
+          Remove
+        </button>
+      </div>
+    ))}
+  </div>
+)}
+
+{/* MATERIALS */}
+{active === "materials" && (
+  <div className={`${card} p-8 rounded-2xl shadow`}>
+    <h2 className="text-2xl font-bold mb-6">All Materials</h2>
+
+    {materials.length === 0 && <p>No materials uploaded</p>}
+
+    {materials.map((m, i) => (
+      <div key={i} className="border-b py-4">
+        <p className="font-bold">{m.title}</p>
+        <p className="text-sm">{m.subject}</p>
+        <a href={m.link} className="text-blue-500 text-sm" target="_blank">
+          View Material
+        </a>
+      </div>
+    ))}
+  </div>
+)}
+
+{/* LIVE CLASSES */}
+{active === "live" && (
+  <div className={`${card} p-8 rounded-2xl shadow`}>
+    <h2 className="text-2xl font-bold mb-6">Live Classes</h2>
+
+    <p>Status: 
+      <span className="font-bold ml-2">
+        {liveStatus || "Offline"}
+      </span>
+    </p>
+
+    <p>Teacher: {liveTeacher || "-"}</p>
+    <p>Subject: {liveSubject || "-"}</p>
+
+    <button
+      onClick={() => {
+        localStorage.setItem("liveClassStatus", "Live");
+        alert("Live class started");
+      }}
+      className="mt-4 bg-green-500 text-white px-4 py-2 rounded-xl"
+    >
+      Start Live
+    </button>
+
+    <button
+      onClick={() => {
+        localStorage.setItem("liveClassStatus", "Offline");
+        alert("Live class ended");
+      }}
+      className="mt-4 ml-2 bg-red-500 text-white px-4 py-2 rounded-xl"
+    >
+      End Live
+    </button>
+  </div>
+)}
+
+{/* NOTICES */}
+{active === "notices" && (
+  <div className={`${card} p-8 rounded-2xl shadow`}>
+    <h2 className="text-2xl font-bold mb-6">Notices</h2>
+
+    <textarea
+      placeholder="Write announcement..."
+      className="w-full border p-4 rounded-xl mb-4 text-black"
+      id="noticeBox"
+    />
+
+    <button
+      onClick={() => {
+        const text = document.getElementById("noticeBox").value;
+        localStorage.setItem("notice", text);
+        alert("Notice saved");
+      }}
+      className="bg-blue-500 text-white px-4 py-2 rounded-xl"
+    >
+      Save Notice
+    </button>
+  </div>
+)}
+
+{/* PROFILE */}
+{active === "profile" && (
+  <div className={`${card} p-8 rounded-2xl shadow`}>
+    <h2 className="text-2xl font-bold mb-6">Admin Profile</h2>
+
+    <p><b>Name:</b> {admin.name}</p>
+    <p><b>Email:</b> {admin.email}</p>
+  </div>
+)}
+
+{/* SETTINGS */}
+{active === "settings" && (
+  <div className={`${card} p-8 rounded-2xl shadow`}>
+    <h2 className="text-2xl font-bold mb-6">Settings</h2>
+
+    <button
+      onClick={() => setDarkMode(!darkMode)}
+      className="bg-gray-800 text-white px-4 py-2 rounded-xl"
+    >
+      Toggle Dark Mode
+    </button>
+  </div>
+)}
+
+{/* ABOUT */}
+{active === "about" && (
+  <div className={`${card} p-8 rounded-2xl shadow`}>
+    <h2 className="text-2xl font-bold mb-6">About System</h2>
+
+    <p>
+      Welcome to Maximo Scholars Uganda – your premier online learning hub designed to help students achieve academic excellence. We offer interactive lessons across a wide range of subjects including Biology, Physics, Chemistry, Maths, Geography, Economics, History, Divinity, Entrepreneurship, and ICT.
+Our experienced educators provide clear, engaging, and results-driven instruction, tailored to learners from top schools across Uganda. With flexible online classes and a supportive learning environment, Maximo Scholars Uganda makes studying smarter, easier, and more effective.
+Join us today and unlock your full academic potential!
+    </p>
+  </div>
+)}
