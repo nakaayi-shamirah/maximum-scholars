@@ -78,7 +78,7 @@ app.use(
 );
 
 app.use(
-  "/api/payment",
+  "/api/payments",
   require("./routes/payment")
 );
 
@@ -167,6 +167,6 @@ async function startServer() {
       error
     );
   }
-}
+} 
 
 startServer();

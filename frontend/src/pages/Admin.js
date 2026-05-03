@@ -48,6 +48,7 @@ const res = await fetch(`${API}/api/users`, {
   },
 });
       const data = await res.json();
+      console.log("USERS:", data);
       setUsers(data);
     } catch (error) {
       console.error(error);
