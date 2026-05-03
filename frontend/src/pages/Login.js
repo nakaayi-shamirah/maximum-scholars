@@ -27,7 +27,7 @@ export default function Login() {
       setLoading(true);
 
       // ✅ Timeout (fix Render sleeping issues)
-      const controller = new AbortController();
+    
       const timeout = setTimeout(
         () => controller.abort(),
         15000
@@ -44,7 +44,7 @@ export default function Login() {
             email,
             password,
           }),
-          signal: controller.signal,
+          
         }
       );
 
