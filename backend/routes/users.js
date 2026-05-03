@@ -406,6 +406,7 @@ router.delete(
 
 router.get("/me", auth, async (req, res) => {
   try {
+    console.log("TOKEN USER ID", req.user.id);
     const user = await User.findByPk(req.userId);
 
     res.json(user);
