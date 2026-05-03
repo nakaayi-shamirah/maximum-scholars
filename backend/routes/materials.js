@@ -10,7 +10,7 @@ router.get("/", async (req, res) => {
   try {
     const materials =
       await Material.findAll({
-        order: [["id", "DESC"]]
+        order: [["createdAT", "DESC"]]
       });
 
     res.json(materials);

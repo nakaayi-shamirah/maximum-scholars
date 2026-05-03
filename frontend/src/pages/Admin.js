@@ -38,6 +38,26 @@ export default function Admin() {
   /* =========================
      FETCH USERS
   ========================= */
+  const [masterials, setMaterials] = useState([]);
+  const fetchMaterials = async () => {
+  try {
+    const token = localStorage.getItem("token");
+
+    const res = await fetch(`${API}/api/materials`, {
+      headers: {
+        Authorization: "Bearer " + token,
+      },
+    });
+
+    const data = await res.json();
+    console.log("MATERIALS:", data);
+
+    setMaterials(data);
+
+  } catch (error) {
+    console.error("MATERIALS ERROR:", error);
+  }
+};
   const fetchUsers = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -86,6 +106,7 @@ export default function Admin() {
   useEffect(() => {
     fetchUsers();
     fetchPayments();
+    fetchMaterials();
     setLoading(false);
   }, []);
 
