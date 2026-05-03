@@ -57,18 +57,25 @@ const res = await fetch(`${API}/api/users`, {
   /* =========================
      FETCH PAYMENTS ✅ NEW
   ========================= */
-  const fetchPayments = async () => {
-    try {
-      const res = await fetch(`${API}/api/payment`);
-      const data = await res.json();
+ const fetchPayments = async () => {
+  try {
+    const token = localStorage.getItem("token");
 
-      console.log("PAYMENTS:", data);
+    const res = await fetch(`${API}/api/payments`, {
+      headers: {
+        Authorization: "Bearer " + token,
+      },
+    });
 
-      setPayments(data);
-    } catch (error) {
-      console.error(error);
-    }
-  };
+    const data = await res.json();
+
+    console.log("PAYMENTS:", data); // debug
+
+    setPayments(data);
+  } catch (error) {
+    console.error("PAYMENTS ERROR:", error);
+  }
+};
 
   /* =========================
      LOAD DATA
