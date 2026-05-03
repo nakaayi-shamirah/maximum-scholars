@@ -361,4 +361,42 @@ router.post(
   }
 );
 
+/* =========================
+   GET CURRENT USER (/me)
+========================= */
+router.get("/me", verifyToken, async (req, res) => {
+  try {
+    console.log("TOKEN DATA:", req.user);
+
+    const user = await User.findByPk(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found"
+      });
+    }
+
+    return res.json({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      school: user.school,
+      referral: user.referral,
+      subjects: user.subjects || [],
+      assignedSubjects: user.assignedSubjects || [],
+      photo: user.photo || "",
+      averageScore: user.averageScore || 0,
+      subscription: user.subscription
+    });
+
+  } catch (error) {
+    console.error("ME ERROR:", error);
+
+    return res.status(500).json({
+      message: "Server error"
+    });
+  }
+});
+
 module.exports = router;
