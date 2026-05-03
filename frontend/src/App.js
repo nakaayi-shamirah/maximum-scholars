@@ -151,7 +151,7 @@ function WhatsAppButton() {
     <button
       onClick={() =>
         window.open(
-          "https://wa.me/256709634560?text=Hello%20Maximo%20Scholars,%20I%20need%20help.",
+          "https://wa.me/256762027171?text=Hello%20Maximo%20Scholars,%20I%20need%20help.",
           "_blank"
         )
       }

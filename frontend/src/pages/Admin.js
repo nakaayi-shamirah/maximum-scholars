@@ -196,10 +196,32 @@ export default function Admin() {
         <h1 className="text-3xl font-bold mb-8">Admin Panel</h1>
 
         <ul className="space-y-3 text-sm">
-          <li onClick={()=>setActive("dashboard")} className="cursor-pointer p-3">Dashboard</li>
-          <li onClick={()=>setActive("payments")} className="cursor-pointer p-3">Payments</li>
-          <li onClick={()=>setActive("users")} className="cursor-pointer p-3">Users</li>
-        </ul>
+
+  <li onClick={()=>setActive("dashboard")} className="cursor-pointer p-3">Dashboard</li>
+
+  <li onClick={()=>setActive("payments")} className="cursor-pointer p-3">Payments</li>
+
+  <li onClick={()=>setActive("users")} className="cursor-pointer p-3">Users</li>
+
+<li onClick={()=>setActive("teachers")} className="cursor-pointer p-3">Teachers</li>
+
+  <li onClick={()=>setActive("materials")} className="cursor-pointer p-3">Materials</li>
+
+  <li onClick={()=>setActive("live")} className="cursor-pointer p-3">Live Classes</li>
+
+  <li onClick={()=>setActive("notices")} className="cursor-pointer p-3">Notices</li>
+
+  <li onClick={()=>setActive("report")} className="cursor-pointer p-3">Report</li>
+
+  <li onClick={()=>setActive("statistics")} className="cursor-pointer p-3">Statistics</li>
+
+  <li onClick={()=>setActive("profile")} className="cursor-pointer p-3">Profile</li>
+
+  <li onClick={()=>setActive("settings")} className="cursor-pointer p-3">Settings</li>
+
+  <li onClick={()=>setActive("about")} className="cursor-pointer p-3">About</li>
+
+</ul>
 
         <button onClick={logout} className="mt-8 w-full bg-red-500 py-3 rounded-xl">
           Logout

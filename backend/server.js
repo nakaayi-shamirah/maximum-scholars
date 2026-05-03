@@ -59,7 +59,7 @@ app.get(
     res.json({
       success: true,
       message:
-        "Maximum Scholars Backend Running ✅"
+        "Maximo Scholars Backend Running ✅"
     });
   }
 );

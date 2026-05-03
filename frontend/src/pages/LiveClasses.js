@@ -306,7 +306,7 @@ export default function LiveClasses() {
 
           <div>
             <h1 className="text-3xl font-bold">
-              Maximum Scholars Live Classroom
+              Maximo Scholars Live Classroom
             </h1>
 
             <p className="mt-2 text-gray-400">

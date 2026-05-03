@@ -139,7 +139,7 @@ export default function Login() {
 
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-blue-700">
-            Maximum Scholars
+            Maximo Scholars
           </h1>
 
           <p className="text-gray-500 mt-2">

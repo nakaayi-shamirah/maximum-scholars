@@ -33,7 +33,7 @@ export default function Landing() {
       {/* NAVBAR */}
       <div className="flex justify-between items-center px-8 py-5 shadow-sm">
         <h1 className="text-2xl font-bold text-blue-700">
-          Maximum Scholars Uganda
+          Maximo Scholars Uganda
         </h1>
 
         <div className="flex gap-3">
@@ -117,11 +117,11 @@ export default function Landing() {
 
         <div className="text-center mb-14">
           <h2 className="text-4xl font-bold mb-4 text-blue-700">
-            About Maximum Scholars
+            About Maximo Scholars
           </h2>
 
           <p className="text-gray-600 text-lg max-w-3xl mx-auto">
-            Maximum Scholars Uganda is a modern online learning
+            Maximo Scholars Uganda is a modern online learning
             platform built to help A-Level students achieve academic
             excellence through expert guidance, flexible digital
             learning, and exam-focused teaching.
@@ -202,7 +202,7 @@ export default function Landing() {
         </h2>
 
         <p className="text-gray-600 text-lg mb-8">
-          Join Maximum Scholars Uganda today and start learning smarter.
+          Join Maximo Scholars Uganda today and start learning smarter.
         </p>
 
         <button
@@ -216,7 +216,7 @@ export default function Landing() {
       {/* FOOTER */}
       <div className="bg-indigo-900 text-white px-8 py-10 text-center">
         <h2 className="text-2xl font-bold mb-2">
-          Maximum Scholars Uganda
+          Maximo Scholars Uganda
         </h2>
 
         <p className="text-blue-100">
@@ -224,7 +224,7 @@ export default function Landing() {
         </p>
 
         <p className="mt-4 text-sm text-blue-200">
-          © 2026 Maximum Scholars Uganda. All Rights Reserved.
+          © 2026 Maximo Scholars Uganda. All Rights Reserved.
         </p>
       </div>
 

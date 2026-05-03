@@ -109,7 +109,7 @@ console.log("📩 PAYMENT REQUEST BODY:", req.body);
         from: process.env.EMAIL_USER,
         to: email,
         subject:
-          "Payment Received - Maximum Scholars Uganda",
+          "Payment Received - Maximo Scholars Uganda",
         html: `
           <div style="font-family:Arial;padding:20px;">
             <h2 style="color:#16a34a;">
