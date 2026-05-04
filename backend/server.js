@@ -13,6 +13,8 @@ const User =
 
 require("./models/Material");
 
+require("./models/LiveClass");
+
 /* =========================
    CONFIG
 ========================= */
@@ -153,6 +155,7 @@ async function startServer() {
     console.log(
       "✅ Database connected"
     );
+     
 
     await createAdmin();
 
