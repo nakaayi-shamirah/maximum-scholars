@@ -302,56 +302,6 @@ const startLiveClass = async (subject) => {
       setAnswer("");
     };
 
-  const startLiveClass =
-    (liveSubject) => {
-
-      localStorage.setItem(
-        "liveClassStatus",
-        "started"
-      );
-
-      localStorage.setItem(
-        "liveTeacher",
-        teacherName
-      );
-
-      localStorage.setItem(
-        "liveSubject",
-        liveSubject
-      );
-
-      localStorage.setItem(
-        "liveAttendance",
-        JSON.stringify([])
-      );
-
-      const oldNotices =
-        JSON.parse(
-          localStorage.getItem(
-            "studentNotifications"
-          )
-        ) || [];
-
-      const newNotice = {
-        id: Date.now(),
-        text:
-          `${liveSubject} class started by ${teacherName}`,
-        time:
-          new Date().toLocaleString()
-      };
-
-      localStorage.setItem(
-        "studentNotifications",
-        JSON.stringify([
-          newNotice,
-          ...oldNotices
-        ])
-      );
-
-      navigate(
-        "/live"
-      );
-    };
 
   const logout = () => {
     localStorage.clear();
