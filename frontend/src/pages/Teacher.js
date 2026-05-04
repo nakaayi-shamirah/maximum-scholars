@@ -1,214 +1,221 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function Teacher() {
   const navigate = useNavigate();
-
+  const API = "https://maximum-scholars-1-api.onrender.com";
   const [active, setActive] = useState("dashboard");
-  const [darkMode, setDarkMode] = useState(false);
+  const [teacher, setTeacher] = useState(JSON.parse(localStorage.getItem("user")) || {});
+  const [assignedSubjects, setAssignedSubjects] = useState(teacher.assignedSubjects || []);
+  const [materials, setMaterials] = useState(JSON.parse(localStorage.getItem("materials")) || []);
+  const [liveClasses, setLiveClasses] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  /* =========================
-     ✅ LIVE CLASS FUNCTION (ONLY ONCE)
-  ========================= /
-  const startLiveClass = async (subject) => {
-    try {
-      const token = localStorage.getItem("token");
-      const user = JSON.parse(localStorage.getItem("user"));
+  useEffect(() => {
+    const role = localStorage.getItem("role");
+    if (role !== "teacher") {
+      navigate("/login");
+      return;
+    }
 
-      const res = await fetch(
-        "https://maximum-scholars-1-api.onrender.com/api/live/start",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: "Bearer " + token,
-          },
-          body: JSON.stringify({
-            subject,
-            teacherId: user?.id,
-            teacherName: user?.name,
-          }),
-        }
-      );
-
-      const data = await res.json();
-
-      if (res.ok) {
-        alert("Live class started 🚀");
-      } else {
-        alert(data.message || "Failed");
+    const fetchTeacher = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch(`${API}/api/users/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Could not fetch teacher");
+        setTeacher(data);
+        setAssignedSubjects(data.assignedSubjects || []);
+        localStorage.setItem("user", JSON.stringify(data));
+      } catch (error) {
+        console.error(error);
       }
-    } catch (error) {
-      console.error(error);
-      alert("Server error");
-    }
-  };
-
-  / =========================
-     YOUR ORIGINAL STATES (UNCHANGED)
-  ========================= /
-  const [photo, setPhoto] = useState(localStorage.getItem("teacherPhoto") || "");
-
-  const teacher = JSON.parse(localStorage.getItem("user")) || {};
-
-  const teacherName = teacher.name || "Teacher";
-  const teacherEmail = teacher.email || "teacher@gmail.com";
-
-  const subjects =
-    JSON.parse(localStorage.getItem("teacherSubjects")) ||
-    teacher.assignedSubjects ||
-    ["Mathematics"];
-
-  const quizzes = JSON.parse(localStorage.getItem("quizzes")) || [];
-  const results = JSON.parse(localStorage.getItem("quizResults")) || [];
-  const materials = JSON.parse(localStorage.getItem("materials")) || [];
-  const notifications =
-    JSON.parse(localStorage.getItem("teacherNotifications")) || [];
-  const attendance =
-    JSON.parse(localStorage.getItem("liveAttendance")) || [];
-
-  const liveStatus = localStorage.getItem("liveClassStatus");
-  const liveSubject = localStorage.getItem("liveSubject");
-
-  const [title, setTitle] = useState("");
-  const [subject, setSubject] = useState(subjects[0] || "");
-  const [link, setLink] = useState("");
-
-  const [quizTitle, setQuizTitle] = useState("");
-  const [question, setQuestion] = useState("");
-  const [answer, setAnswer] = useState("");
-
-  const theme =
-    darkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-black";
-
-  const card =
-    darkMode ? "bg-gray-800 text-white" : "bg-white text-black";
-
-  const myQuizzes = quizzes.filter((q) => q.teacher === teacherName);
-  const myResults = results.filter((r) =>
-    subjects.includes(r.subject)
-  );
-  const myMaterials = materials.filter((m) =>
-    subjects.includes(m.subject)
-  );
-
-  const average =
-    myResults.length === 0
-      ? 0
-      : Math.round(
-          myResults.reduce((a, b) => a + b.score, 0) /
-            myResults.length
-        );
-
-  const uploadPhoto = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      setPhoto(reader.result);
-      localStorage.setItem("teacherPhoto", reader.result);
     };
-    reader.readAsDataURL(file);
-  };
 
-  const uploadMaterial = () => {
-    if (!title || !subject || !link) {
-      alert("Fill all fields");
-      return;
-    }
+    const fetchMaterials = async () => {
+      try {
+        const res = await fetch(`${API}/api/materials`);
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setMaterials(data);
+          localStorage.setItem("materials", JSON.stringify(data));
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    };
 
-    const updated = [
-      {
-        id: Date.now(),
-        title,
-        subject,
-        link,
-        teacher: teacherName,
-      },
-      ...materials,
-    ];
+    const fetchLive = async () => {
+      try {
+        const res = await fetch(`${API}/api/live?all=true`);
+        const data = await res.json();
+        if (Array.isArray(data)) setLiveClasses(data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
 
-    localStorage.setItem("materials", JSON.stringify(updated));
-    alert("Material uploaded");
-    setTitle("");
-    setLink("");
-  };
+    const load = async () => {
+      await fetchTeacher();
+      await fetchMaterials();
+      await fetchLive();
+      setLoading(false);
+    };
 
-  const createQuiz = () => {
-    if (!quizTitle || !question || !answer) {
-      alert("Fill all fields");
-      return;
-    }
-
-    const updated = [
-      {
-        id: Date.now(),
-        title: quizTitle,
-        subject,
-        question,
-        answer,
-        teacher: teacherName,
-      },
-      ...quizzes,
-    ];
-
-    localStorage.setItem("quizzes", JSON.stringify(updated));
-    alert("Quiz created");
-    setQuizTitle("");
-    setQuestion("");
-    setAnswer("");
-  };
+    load();
+  }, [navigate]);
 
   const logout = () => {
     localStorage.clear();
     navigate("/");
   };
 
-  / =========================
-     UI
-  ========================= /
+  const subjectMaterials = materials.filter((item) => assignedSubjects.includes(item.subject));
+  const currentLive = liveClasses.filter((live) => live.teacherId === teacher.id && live.status === "live");
+
+  const handleStartLive = async (subject) => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${API}/api/live/start`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          subject,
+          teacherId: teacher.id,
+          teacherName: teacher.name,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to start live class");
+      localStorage.setItem("liveClassStatus", "started");
+      localStorage.setItem("liveTeacher", teacher.name);
+      localStorage.setItem("liveSubject", data.subject);
+      localStorage.setItem("liveRoomId", data.roomId);
+      navigate("/live");
+    } catch (error) {
+      console.error(error);
+      alert(error.message || "Unable to start live class.");
+    }
+  };
+
+  const theme = "bg-slate-100 text-slate-900";
+  const card = "rounded-3xl bg-white p-6 shadow";
+
   return (
-    <div className={flex min-h-screen ${theme}}>
-      <div className="w-72 bg-gradient-to-b from-green-700 to-emerald-900 text-white p-6">
+    <div className={`flex min-h-screen ${theme}`}>
+      <aside className="w-72 bg-gradient-to-b from-emerald-700 to-slate-900 text-white p-6 hidden md:block">
         <h1 className="text-3xl font-bold mb-8">Teacher Panel</h1>
+        <nav className="space-y-3 text-sm">
+          <button className={`w-full rounded-2xl px-4 py-3 text-left ${active === "dashboard" ? "bg-white/20" : "hover:bg-white/10"}`} onClick={() => setActive("dashboard")}>Dashboard</button>
+          <button className={`w-full rounded-2xl px-4 py-3 text-left ${active === "live" ? "bg-white/20" : "hover:bg-white/10"}`} onClick={() => setActive("live")}>Live Classes</button>
+          <button className={`w-full rounded-2xl px-4 py-3 text-left ${active === "materials" ? "bg-white/20" : "hover:bg-white/10"}`} onClick={() => setActive("materials")}>Materials</button>
+          <button className={`w-full rounded-2xl px-4 py-3 text-left ${active === "profile" ? "bg-white/20" : "hover:bg-white/10"}`} onClick={() => setActive("profile")}>Profile</button>
+        </nav>
+        <button onClick={logout} className="mt-8 w-full rounded-2xl bg-red-500 py-3 font-semibold">Logout</button>
+      </aside>
 
-        <ul className="space-y-3 text-sm">
-          <li onClick={()=>setActive("dashboard")} className="cursor-pointer p-3">Dashboard</li>
-          <li onClick={()=>setActive("live")} className="cursor-pointer p-3">Live Classes</li>
-        </ul>
+      <main className="flex-1 p-6 md:p-10 md:ml-72">
+        <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h1 className="text-4xl font-bold">Welcome, {teacher.name}</h1>
+            <p className="text-slate-600 mt-2">Manage your assigned subjects and launch live classes.</p>
+          </div>
+          <div className="space-y-2 text-right">
+            <p className="text-slate-500">Subjects assigned: {assignedSubjects.length}</p>
+            <p className="text-slate-500">Current live sessions: {currentLive.length}</p>
+          </div>
+        </div>
 
-        <button onClick={logout} className="mt-8 w-full bg-red-500 py-3 rounded-xl">
-          Logout
-        </button>
-      </div>
-
-      <div className="flex-1 p-8">
-        <h1 className="text-4xl font-bold mb-8">
-          Welcome, {teacherName}
-        </h1>
-
-        {/ LIVE */}
-        {active === "live" && (
-          <div className={`${card} p-6`}>
-            <button
-              onClick={() => startLiveClass("Mathematics")}
-              className="bg-green-600 text-white px-4 py-2 rounded-xl mb-4"
-            >
-              Start Mathematics Live
-            </button>
-
-            {subjects.map((item) => (
-              <button
-                key={item}
-                onClick={() => startLiveClass(item)}
-                className="block bg-green-500 text-white px-5 py-3 rounded-xl mb-2"
-              >
-                Start {item}
-              </button>
-            ))}
+        {loading ? (
+          <div className={card}>Loading teacher dashboard...</div>
+        ) : (
+          <div className="space-y-6">
+            {active === "dashboard" && (
+              <div className="grid gap-6 md:grid-cols-3">
+                <div className={card}>
+                  <p className="text-sm uppercase text-slate-500">Assigned Subjects</p>
+                  <p className="mt-4 text-4xl font-bold">{assignedSubjects.length}</p>
+                </div>
+                <div className={card}>
+                  <p className="text-sm uppercase text-slate-500">Materials</p>
+                  <p className="mt-4 text-4xl font-bold">{subjectMaterials.length}</p>
+                </div>
+                <div className={card}>
+                  <p className="text-sm uppercase text-slate-500">Live Sessions</p>
+                  <p className="mt-4 text-4xl font-bold">{currentLive.length}</p>
+                </div>
               </div>
-            );
-            }
-         
-    
+            )}
+
+            {active === "live" && (
+              <div className={card}>
+                <h2 className="text-2xl font-semibold mb-4">Start Live Class</h2>
+                {assignedSubjects.length === 0 ? (
+                  <p className="text-slate-500">No subjects assigned yet.</p>
+                ) : (
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {assignedSubjects.map((subject) => (
+                      <div key={subject} className="rounded-3xl border p-5">
+                        <p className="font-semibold">{subject}</p>
+                        <button
+                          onClick={() => handleStartLive(subject)}
+                          className="mt-4 w-full rounded-2xl bg-green-600 px-4 py-3 text-white"
+                        >
+                          Start {subject}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {active === "materials" && (
+              <div className={card}>
+                <h2 className="text-2xl font-semibold mb-4">Materials for your subjects</h2>
+                {subjectMaterials.length === 0 ? (
+                  <p className="text-slate-500">No materials uploaded for your assigned subjects.</p>
+                ) : (
+                  <div className="space-y-4">
+                    {subjectMaterials.map((item) => (
+                      <div key={item.id} className="rounded-3xl border p-4">
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                          <div>
+                            <p className="font-semibold">{item.title}</p>
+                            <p className="text-sm text-slate-500">{item.subject}</p>
+                          </div>
+                          <a href={item.link} target="_blank" rel="noreferrer" className="rounded-2xl bg-blue-600 px-4 py-2 text-white">
+                            Open
+                          </a>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {active === "profile" && (
+              <div className={card}>
+                <h2 className="text-2xl font-semibold mb-4">Profile</h2>
+                <div className="grid gap-6 lg:grid-cols-2">
+                  <div className="space-y-3">
+                    <p className="text-lg font-semibold">{teacher.name}</p>
+                    <p className="text-slate-500">{teacher.email}</p>
+                    <p className="text-slate-500">Role: Teacher</p>
+                    <p className="text-slate-500">Assigned subjects: {assignedSubjects.join(", ")}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}

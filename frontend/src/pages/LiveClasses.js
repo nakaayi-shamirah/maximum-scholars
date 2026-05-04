@@ -1,568 +1,165 @@
-import {
-  useEffect,
-  useRef,
-  useState
-} from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function LiveClasses() {
-  const navigate =
-    useNavigate();
-
-  const user =
-    JSON.parse(
-      localStorage.getItem(
-        "user"
-      )
-    ) || {};
-
-  const role =
-    localStorage.getItem(
-      "role"
-    ) || "student";
-
-  const mySubjects =
-    JSON.parse(
-      localStorage.getItem(
-        "subjects"
-      )
-    ) || [];
-
-  const videoRef =
-    useRef(null);
-
-  const [cameraOn, setCameraOn] =
-    useState(false);
-
-  const [joined, setJoined] =
-    useState(false);
-
-  const [micOn, setMicOn] =
-    useState(true);
-
-  const [text, setText] =
-    useState("");
-
-  const [messages, setMessages] =
-    useState(
-      JSON.parse(
-        localStorage.getItem(
-          "liveMessages"
-        )
-      ) || []
-    );
-
-  const [liveStatus, setLiveStatus] =
-    useState(
-      localStorage.getItem(
-        "liveClassStatus"
-      ) || "ended"
-    );
-
-  const [teacher, setTeacher] =
-    useState(
-      localStorage.getItem(
-        "liveTeacher"
-      ) || ""
-    );
-
-  const [subject, setSubject] =
-    useState(
-      localStorage.getItem(
-        "liveSubject"
-      ) || ""
-    );
+  const navigate = useNavigate();
+  const API = "https://maximum-scholars-1-api.onrender.com";
+  const user = JSON.parse(localStorage.getItem("user")) || {};
+  const role = localStorage.getItem("role") || "student";
+  const subjects = JSON.parse(localStorage.getItem("subjects")) || [];
+  const [liveClasses, setLiveClasses] = useState([]);
+  const [activeClass, setActiveClass] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const timer =
-      setInterval(() => {
-        setLiveStatus(
-          localStorage.getItem(
-            "liveClassStatus"
-          ) || "ended"
-        );
-
-        setTeacher(
-          localStorage.getItem(
-            "liveTeacher"
-          ) || ""
-        );
-
-        setSubject(
-          localStorage.getItem(
-            "liveSubject"
-          ) || ""
-        );
-
-        setMessages(
-          JSON.parse(
-            localStorage.getItem(
-              "liveMessages"
-            )
-          ) || []
-        );
-      }, 1000);
-
-    return () =>
-      clearInterval(timer);
+    const fetchLive = async () => {
+      try {
+        const res = await fetch(`${API}/api/live?all=true`);
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setLiveClasses(data);
+          const active = data.find((item) => item.status === "live");
+          setActiveClass(active || null);
+        }
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchLive();
   }, []);
 
-  const openCamera =
-    async () => {
-      try {
-        const stream =
-          await navigator.mediaDevices.getUserMedia(
-            {
-              video: true,
-              audio: true
-            }
-          );
+  const logout = () => {
+    localStorage.clear();
+    navigate("/");
+  };
 
-        if (
-          videoRef.current
-        ) {
-          videoRef.current.srcObject =
-            stream;
-        }
+  const joinLive = async (live) => {
+    if (!live) {
+      alert("No active live class found.");
+      return;
+    }
 
-        setCameraOn(true);
+    if (role === "student" && !subjects.includes(live.subject)) {
+      alert(`You are not enrolled for ${live.subject}.`);
+      return;
+    }
 
-      } catch {
-        alert(
-          "Camera access denied."
-        );
-      }
-    };
+    localStorage.setItem("liveClassStatus", "started");
+    localStorage.setItem("liveTeacher", live.teacherName);
+    localStorage.setItem("liveSubject", live.subject);
+    localStorage.setItem("liveRoomId", live.roomId);
+    setActiveClass(live);
+  };
 
-  const closeCamera =
-    () => {
-      const stream =
-        videoRef.current
-          ?.srcObject;
+  const handleEnd = async (live) => {
+    try {
+      await fetch(`${API}/api/live/end/${live.id}`, { method: "PUT" });
+      setActiveClass(null);
+      setLiveClasses(liveClasses.map((item) => (item.id === live.id ? { ...item, status: "ended" } : item)));
+      localStorage.removeItem("liveClassStatus");
+      localStorage.removeItem("liveTeacher");
+      localStorage.removeItem("liveSubject");
+      localStorage.removeItem("liveRoomId");
+    } catch (error) {
+      console.error(error);
+      alert("Failed to stop class.");
+    }
+  };
 
-      if (stream) {
-        stream
-          .getTracks()
-          .forEach(
-            (track) =>
-              track.stop()
-          );
-      }
-
-      setCameraOn(false);
-    };
-
-  const startClass =
-    async () => {
-      localStorage.setItem(
-        "liveClassStatus",
-        "started"
-      );
-
-      localStorage.setItem(
-        "liveTeacher",
-        user.name
-      );
-
-      localStorage.setItem(
-        "liveSubject",
-        subject || "General"
-      );
-
-      setLiveStatus(
-        "started"
-      );
-
-      await openCamera();
-
-      setJoined(true);
-    };
-
-  const joinClass =
-    async () => {
-      if (
-        liveStatus !==
-        "started"
-      ) {
-        alert(
-          "No live class is active."
-        );
-        return;
-      }
-
-      if (
-        role ===
-          "student" &&
-        subject &&
-        !mySubjects.includes(
-          subject
-        )
-      ) {
-        alert(
-          `You are not enrolled in ${subject}`
-        );
-        return;
-      }
-
-      await openCamera();
-
-      setJoined(true);
-    };
-
-  const endClass =
-    () => {
-      localStorage.setItem(
-        "liveClassStatus",
-        "ended"
-      );
-
-      localStorage.removeItem(
-        "liveTeacher"
-      );
-
-      localStorage.removeItem(
-        "liveSubject"
-      );
-
-      localStorage.removeItem(
-        "liveMessages"
-      );
-
-      closeCamera();
-
-      setJoined(false);
-
-      setLiveStatus(
-        "ended"
-      );
-    };
-
-  const sendMessage =
-    () => {
-      if (!text.trim())
-        return;
-
-      const newMsg = {
-        id:
-          Date.now(),
-        sender:
-          user.name,
-        role,
-        text
-      };
-
-      const updated = [
-        ...messages,
-        newMsg
-      ];
-
-      localStorage.setItem(
-        "liveMessages",
-        JSON.stringify(
-          updated
-        )
-      );
-
-      setMessages(
-        updated
-      );
-
-      setText("");
-    };
-
-  const leaveClass =
-    () => {
-      closeCamera();
-      setJoined(false);
-
-      if (
-        role ===
-        "teacher"
-      ) {
-        navigate(
-          "/teacher"
-        );
-      } else if (
-        role ===
-        "admin"
-      ) {
-        navigate(
-          "/admin"
-        );
-      } else {
-        navigate(
-          "/dashboard"
-        );
-      }
-    };
+  const roleLabel = role.charAt(0).toUpperCase() + role.slice(1);
+  const card = "rounded-3xl bg-slate-900/90 p-6 text-white shadow-xl";
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white p-5">
-
-      <div className="max-w-7xl mx-auto">
-
-        {/* HEADER */}
-        <div className="bg-slate-900 rounded-3xl p-6 mb-6 flex flex-wrap justify-between gap-4 items-center">
-
+    <div className="min-h-screen bg-slate-950 text-white p-6 md:p-10">
+      <div className="max-w-7xl mx-auto space-y-8">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-3xl font-bold">
-              Maximo Scholars Live Classroom
-            </h1>
-
-            <p className="mt-2 text-gray-400">
-              {liveStatus ===
-              "started"
-                ? "🟢 LIVE NOW"
-                : "🔴 OFFLINE"}
-            </p>
-
-            <p className="text-gray-400">
-              Teacher:
-              {" "}
-              {teacher ||
-                "None"}
-            </p>
-
-            <p className="text-gray-400">
-              Subject:
-              {" "}
-              {subject ||
-                "None"}
-            </p>
+            <h1 className="text-4xl font-bold">Live Classes</h1>
+            <p className="text-slate-300 mt-2">{roleLabel} dashboard for real-time sessions.</p>
           </div>
-
-          <button
-            onClick={
-              leaveClass
-            }
-            className="bg-red-500 px-6 py-3 rounded-xl"
-          >
-            Exit
-          </button>
-
+          <div className="space-y-2 text-right">
+            <p className="text-slate-400">User: {user.name}</p>
+            <button onClick={logout} className="rounded-2xl bg-red-500 px-5 py-3 font-semibold text-white">
+              Logout
+            </button>
+          </div>
         </div>
 
-        {/* BODY */}
-        <div className="grid md:grid-cols-3 gap-6">
-
-          {/* VIDEO AREA */}
-          <div className="md:col-span-2">
-
-            <div className="bg-black rounded-3xl h-[520px] overflow-hidden relative flex items-center justify-center">
-
-              {cameraOn ? (
-                <video
-                  ref={
-                    videoRef
-                  }
-                  autoPlay
-                  muted
-                  playsInline
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="text-center">
-                  <p className="text-5xl mb-4">
-                    🎓
-                  </p>
-
-                  <p className="text-2xl font-bold">
-                    {liveStatus ===
-                    "started"
-                      ? "Join a live class"
-                      : "Waiting for teacher"}
-                  </p>
-
-                  <p className="text-gray-500 mt-3">
-                    {subject ||
-                      "No active subject"}
-                  </p>
-                </div>
-              )}
-
-              <div className="absolute bottom-4 left-4 bg-black/60 px-4 py-2 rounded-xl text-sm">
-                {user.name}
+        <div className="grid gap-6 md:grid-cols-[2fr_1fr]">
+          <div className={card}>
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <p className="text-slate-300">Live classroom status</p>
+                <h2 className="text-3xl font-bold">{activeClass ? "Live Now" : "No active class"}</h2>
               </div>
-
+              <div className="rounded-3xl bg-slate-800 px-4 py-3 text-slate-200">
+                Role: {roleLabel}
+              </div>
             </div>
 
-            {/* CONTROLS */}
-            <div className="mt-5 flex flex-wrap gap-4">
+            {loading ? (
+              <p>Loading classes...</p>
+            ) : activeClass ? (
+              <div className="space-y-4">
+                <div className="rounded-3xl border border-slate-700 p-5">
+                  <p className="text-slate-400">Subject</p>
+                  <p className="text-2xl font-semibold">{activeClass.subject}</p>
+                  <p className="text-slate-400 mt-2">Teacher: {activeClass.teacherName}</p>
+                  <p className="text-slate-400">Room: {activeClass.roomId}</p>
+                </div>
 
-              {role ===
-                "student" && (
-                <button
-                  onClick={
-                    joinClass
-                  }
-                  className="bg-blue-600 px-6 py-3 rounded-xl"
-                >
-                  Join Class
-                </button>
-              )}
-
-              {role ===
-                "teacher" && (
-                <>
-                  <button
-                    onClick={
-                      startClass
-                    }
-                    className="bg-green-500 px-6 py-3 rounded-xl"
-                  >
-                    Start Class
+                <div className="flex flex-wrap gap-3">
+                  <button onClick={() => joinLive(activeClass)} className="rounded-2xl bg-blue-600 px-5 py-3 font-semibold text-white">
+                    Join Class
                   </button>
-
-                  <button
-                    onClick={
-                      endClass
-                    }
-                    className="bg-red-500 px-6 py-3 rounded-xl"
-                  >
-                    End Class
-                  </button>
-                </>
-              )}
-
-              {role ===
-                "admin" &&
-                liveStatus ===
-                  "started" && (
-                  <>
-                    <button
-                      onClick={
-                        joinClass
-                      }
-                      className="bg-blue-600 px-6 py-3 rounded-xl"
-                    >
-                      Join Live
+                  {role !== "student" && activeClass.status === "live" && (
+                    <button onClick={() => handleEnd(activeClass)} className="rounded-2xl bg-red-500 px-5 py-3 font-semibold text-white">
+                      End Class
                     </button>
+                  )}
+                </div>
 
-                    <button
-                      onClick={
-                        endClass
-                      }
-                      className="bg-red-500 px-6 py-3 rounded-xl"
-                    >
-                      End Live
-                    </button>
-                  </>
-                )}
-
-              <button
-                onClick={() =>
-                  micOn
-                    ? setMicOn(
-                        false
-                      )
-                    : setMicOn(
-                        true
-                      )
-                }
-                className="bg-slate-700 px-6 py-3 rounded-xl"
-              >
-                {micOn
-                  ? "🎤 Mic On"
-                  : "🔇 Mic Off"}
-              </button>
-
-              <button
-                onClick={() =>
-                  cameraOn
-                    ? closeCamera()
-                    : openCamera()
-                }
-                className="bg-slate-700 px-6 py-3 rounded-xl"
-              >
-                {cameraOn
-                  ? "📷 Camera Off"
-                  : "📷 Camera On"}
-              </button>
-
-              <button
-                className="bg-yellow-500 px-6 py-3 rounded-xl text-black"
-              >
-                ✋ Raise Hand
-              </button>
-
-            </div>
-
+                <div className="h-[450px] overflow-hidden rounded-3xl border border-slate-700">
+                  <iframe
+                    title="Jitsi Live Class"
+                    src={activeClass ? `https://meet.jit.si/${encodeURIComponent(activeClass.roomId)}#config.prejoinPageEnabled=false&userInfo.displayName=${encodeURIComponent(user.name || roleLabel)}` : "about:blank"}
+                    className="h-full w-full"
+                    allow="camera; microphone; fullscreen; display-capture"
+                  />
+                </div>
+              </div>
+            ) : (
+              <p className="text-slate-300">There is no live class available right now. Please check back later.</p>
+            )}
           </div>
 
-          {/* CHAT */}
-          <div className="bg-slate-900 rounded-3xl p-5 h-[590px] flex flex-col">
-
-            <h2 className="text-2xl font-bold mb-4">
-              Class Chat
-            </h2>
-
-            <div className="flex-1 overflow-y-auto space-y-3">
-
-              {messages.length ===
-              0 ? (
-                <p className="text-gray-500">
-                  No messages yet
-                </p>
-              ) : (
-                messages.map(
-                  (msg) => (
-                    <div
-                      key={
-                        msg.id
-                      }
-                      className="bg-slate-800 p-3 rounded-xl"
-                    >
-                      <strong>
-                        {
-                          msg.sender
-                        }
-                      </strong>{" "}
-                      ({msg.role})
-                      <p className="mt-1">
-                        {
-                          msg.text
-                        }
-                      </p>
+          <div className="space-y-6">
+            <div className={card}>
+              <h2 className="text-2xl font-semibold">Available Live Classes</h2>
+              <div className="space-y-4 mt-4">
+                {liveClasses.length === 0 ? (
+                  <p className="text-slate-400">No live classes have been scheduled yet.</p>
+                ) : (
+                  liveClasses.map((live) => (
+                    <div key={live.id} className="rounded-3xl border border-slate-700 p-4">
+                      <p className="font-semibold">{live.subject}</p>
+                      <p className="text-sm text-slate-400">Teacher: {live.teacherName}</p>
+                      <p className="text-sm text-slate-400">Status: {live.status}</p>
                     </div>
-                  )
-                )
-              )}
-
+                  ))
+                )}
+              </div>
             </div>
 
-            <div className="mt-4 flex gap-2">
-
-              <input
-                value={text}
-                onChange={(
-                  e
-                ) =>
-                  setText(
-                    e.target
-                      .value
-                  )
-                }
-                placeholder="Type message..."
-                className="flex-1 p-3 rounded-xl text-black"
-              />
-
-              <button
-                onClick={
-                  sendMessage
-                }
-                className="bg-indigo-600 px-5 rounded-xl"
-              >
-                Send
-              </button>
-
+            <div className={card}>
+              <h2 className="text-2xl font-semibold">Your Access</h2>
+              <p className="text-slate-400 mt-3">Subjects enrolled: {subjects.join(", ") || "No subjects selected."}</p>
             </div>
-
           </div>
-
         </div>
-
       </div>
-
     </div>
   );
 }

@@ -98,48 +98,155 @@ app.use(
 ========================= */
 async function createAdmin() {
   try {
-    const existing =
-      await User.findOne({
-        where: {
-          email:
-            "admin@maximumscholars.com"
-        }
-      });
+    const existing = await User.findOne({
+      where: {
+        email: "admin@maximumscholars.com"
+      }
+    });
 
     if (!existing) {
-      const hashed =
-        await bcrypt.hash(
-          "Admin12345",
-          10
-        );
+      const hashed = await bcrypt.hash("Admin12345", 10);
 
       await User.create({
-        name:
-          "System Admin",
-        email:
-          "admin@maximumscholars.com",
-        password:
-          hashed,
-        role:
-          "admin",
-        isActive:
-          true
+        name: "System Admin",
+        email: "admin@maximumscholars.com",
+        password: hashed,
+        role: "admin",
+        isActive: true
       });
 
-      console.log(
-        "✅ Default admin created"
-      );
+      console.log("✅ Default admin created");
     } else {
-      console.log(
-        "✅ Admin already exists"
-      );
+      console.log("✅ Admin already exists");
+    }
+  } catch (error) {
+    console.log("Admin setup error:", error);
+  }
+}
+
+async function createSampleData() {
+  try {
+    const totalUsers = await User.count();
+    if (totalUsers > 1) {
+      console.log("✅ Sample data already present or users exist");
+      return;
     }
 
+    const sampleStudents = [
+      {
+        name: "Alice Nansubuga",
+        email: "student1@maximumscholars.com",
+        password: "Student123",
+        role: "student",
+        subjects: ["Mathematics", "Physics"],
+        subscription: {
+          status: "approved",
+          approvedAt: new Date(),
+          expiresAt: new Date("2026-12-31T23:59:59"),
+          amount: 70000,
+          plan: "B"
+        }
+      },
+      {
+        name: "Benjamin Atwiine",
+        email: "student2@maximumscholars.com",
+        password: "Student123",
+        role: "student",
+        subjects: ["Biology", "Chemistry"],
+        subscription: {
+          status: "pending",
+          amount: 40000,
+          plan: "C"
+        }
+      }
+    ];
+
+    const sampleTeachers = [
+      {
+        name: "Mr. Kato",
+        email: "teacher1@maximumscholars.com",
+        password: "Teacher123",
+        role: "teacher",
+        assignedSubjects: ["Mathematics", "Physics"],
+        subjects: ["Mathematics", "Physics"],
+        subscription: {
+          status: "active"
+        }
+      },
+      {
+        name: "Ms. Achieng",
+        email: "teacher2@maximumscholars.com",
+        password: "Teacher123",
+        role: "teacher",
+        assignedSubjects: ["Biology", "Chemistry"],
+        subjects: ["Biology", "Chemistry"],
+        subscription: {
+          status: "active"
+        }
+      }
+    ];
+
+    for (const account of [...sampleStudents, ...sampleTeachers]) {
+      const existing = await User.findOne({ where: { email: account.email } });
+      if (!existing) {
+        const hashed = await bcrypt.hash(account.password, 10);
+        await User.create({
+          name: account.name,
+          email: account.email,
+          password: hashed,
+          role: account.role,
+          subjects: account.subjects || [],
+          assignedSubjects: account.assignedSubjects || [],
+          subscription: account.subscription || {
+            status: "inactive",
+            approvedAt: null,
+            expiresAt: null,
+            amount: 0,
+            plan: ""
+          },
+          isActive: true
+        });
+      }
+    }
+
+    const materialCount = await Material.count();
+    if (materialCount === 0) {
+      await Material.bulkCreate([
+        {
+          title: "Algebra Basics",
+          subject: "Mathematics",
+          link: "https://example.com/algebra",
+          teacher: "Mr. Kato"
+        },
+        {
+          title: "Physics Mechanics",
+          subject: "Physics",
+          link: "https://example.com/physics",
+          teacher: "Mr. Kato"
+        },
+        {
+          title: "Cell Biology Notes",
+          subject: "Biology",
+          link: "https://example.com/biology",
+          teacher: "Ms. Achieng"
+        }
+      ]);
+    }
+
+    const liveCount = await LiveClass.count();
+    if (liveCount === 0) {
+      await LiveClass.create({
+        subject: "Mathematics",
+        teacherId: 3,
+        teacherName: "Mr. Kato",
+        roomId: `room_Mathematics_${Date.now()}`,
+        status: "live"
+      });
+    }
+
+    console.log("✅ Sample students, teachers, materials and live class created");
   } catch (error) {
-    console.log(
-      "Admin setup error:",
-      error
-    );
+    console.error("Sample data setup failed:", error);
   }
 }
 
@@ -152,12 +259,10 @@ async function startServer() {
       alter: true
     });
 
-    console.log(
-      "✅ Database connected"
-    );
-     
+    console.log("✅ Database connected");
 
     await createAdmin();
+    await createSampleData();
 
     app.listen(
       PORT,
