@@ -86,6 +86,10 @@ app.use(
   "/api/materials",
   require("./routes/materials")
 );
+app.use(
+  "/api/live",
+  require(".routes/live")
+);
 
 /* =========================
    CREATE DEFAULT ADMIN
