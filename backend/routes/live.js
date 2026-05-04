@@ -6,6 +6,8 @@ const LiveClass = require("../models/LiveClass");
    START LIVE CLASS
 ========================= */
 router.post("/start", async (req, res) => {
+    console.log("LIVE START HIT");
+    
   try {
     const { subject, teacherId, teacherName } = req.body;
 

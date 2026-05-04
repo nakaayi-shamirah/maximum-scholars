@@ -31,6 +31,7 @@ const startLiveClass = async (subject) => {
     });
 
     const data = await res.json();
+    console.log("LIVE RESPONSE:", data);
 
     if (res.ok) {
       alert("Live class started 🚀");
