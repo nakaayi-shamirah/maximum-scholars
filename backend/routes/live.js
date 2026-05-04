@@ -24,7 +24,7 @@ router.post("/start", async (req, res) => {
     res.json(live);
 
   } catch (error) {
-    console.error("LIVE ERROR:", error);   // 👈 VERY IMPORTANT
+    console.log("LIVE ERROR:", error);   // 👈 VERY IMPORTANT
     res.status(500).json({ message: "Failed to start live class" });
   }
 });
