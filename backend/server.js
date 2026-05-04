@@ -88,7 +88,7 @@ app.use(
 );
 app.use(
   "/api/live",
-  require(".routes/live")
+  require("./routes/live")
 );
 
 /* =========================
