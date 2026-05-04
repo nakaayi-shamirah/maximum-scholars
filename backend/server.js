@@ -149,7 +149,7 @@ async function createAdmin() {
 async function startServer() {
   try {
     await sequelize.sync({
-      force: true
+      alter: true
     });
 
     console.log(
