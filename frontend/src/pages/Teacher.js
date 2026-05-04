@@ -9,6 +9,40 @@ export default function Teacher() {
 
   const [darkMode, setDarkMode] =
     useState(false);
+  
+
+// ✅ PASTE HERE 👇
+const startLiveClass = async (subject) => {
+  try {
+    const token = localStorage.getItem("token");
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    const res = await fetch("https://maximum-scholars-1-api.onrender.com/api/live/start", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + token,
+      },
+      body: JSON.stringify({
+        subject,
+        teacherId: user.id,
+        teacherName: user.name,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      alert("Live class started 🚀");
+    } else {
+      alert(data.message || "Failed");
+    }
+
+  } catch (error) {
+    console.error(error);
+    alert("Server error");
+  }
+};
 
   const [photo, setPhoto] =
     useState(
@@ -534,6 +568,12 @@ export default function Teacher() {
             <h2 className="text-2xl font-bold mb-6">
               My Live Classes
             </h2>
+            <button
+  onClick={() => startLiveClass("Mathematics")}
+  className="bg-green-600 text-white px-4 py-2 rounded-xl mb-4"
+>
+  Start Mathematics Live
+</button>
 
             {liveStatus === "started" && (
               <div className="mb-6 p-4 rounded-xl bg-green-100 text-black">
@@ -566,6 +606,7 @@ export default function Teacher() {
               ))}
 
             </div>
+
 
             {/* ATTENDANCE */}
             <div className="mt-8">

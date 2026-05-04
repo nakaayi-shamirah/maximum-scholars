@@ -9,6 +9,12 @@ router.post("/start", async (req, res) => {
   try {
     const { subject, teacherId, teacherName } = req.body;
 
+    if (!subject || !teacherId) {
+      return res.status(400).json({
+        message: "Missing subject or teacher"
+      });
+    }
+
     const roomId = "room_" + subject + "_" + Date.now();
 
     const live = await LiveClass.create({
@@ -19,7 +25,10 @@ router.post("/start", async (req, res) => {
       status: "live",
     });
 
-    res.json(live);
+    res.json({
+      message: "Live class started",
+      live,
+    });
 
   } catch (error) {
     console.error(error);
