@@ -6,16 +6,10 @@ const LiveClass = require("../models/LiveClass");
    START LIVE CLASS
 ========================= */
 router.post("/start", async (req, res) => {
-    console.log("LIVE START HIT");
-    
   try {
-    const { subject, teacherId, teacherName } = req.body;
+    console.log("LIVE BODY:", req.body);
 
-    if (!subject || !teacherId) {
-      return res.status(400).json({
-        message: "Missing subject or teacher"
-      });
-    }
+    const { subject, teacherId, teacherName } = req.body;
 
     const roomId = "room_" + subject + "_" + Date.now();
 
@@ -27,18 +21,16 @@ router.post("/start", async (req, res) => {
       status: "live",
     });
 
-    res.json({
-      message: "Live class started",
-      live,
-    });
+    res.json(live);
 
   } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      message: "Failed to start live class"
-    });
+    console.error("LIVE ERROR:", error);   // 👈 VERY IMPORTANT
+    res.status(500).json({ message: "Failed to start live class" });
   }
 });
+
+    
+
 
 /* =========================
    GET ALL LIVE CLASSES
