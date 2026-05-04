@@ -11,108 +11,48 @@ export default function Admin() {
   ========================= */
   const [payments, setPayments] = useState([]);
   const [users, setUsers] = useState([]);
+  const [materials, setMaterials] = useState([]);
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState("dashboard");
   const [darkMode, setDarkMode] = useState(false);
   const [search, setSearch] = useState("");
-  const [materials, setMaterals] = useState([]);
-  const students = users.filter((u) => u.role === "student");
-const teachers = users.filter((u) => u.role === "teacher");
-const theme = darkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-black";
-const card = darkMode ? "bg-gray-800 text-white" : "bg-white text-black";
-
-  const [teacherForm, setTeacherForm] = useState({
-    name: "",
-    email: "",
-    password: "",
-    subjects: ""
-  });
 
   /* =========================
-     LOCAL DATA
+     LOCAL (TEMP UNTIL BACKEND)
   ========================= */
   const admin = JSON.parse(localStorage.getItem("user")) || {};
-  const materials = JSON.parse(localStorage.getItem("materials")) || [];
-  const results = JSON.parse(localStorage.getItem("quizResults")) || [];
-
-  const photo = localStorage.getItem("adminPhoto") || "";
-  const liveStatus = localStorage.getItem("liveClassStatus");
-  const liveTeacher = localStorage.getItem("liveTeacher");
-  const liveSubject = localStorage.getItem("liveSubject");
 
   /* =========================
-     FETCH USERS
+     FETCH
   ========================= */
-  const [masterials, setMaterials] = useState([]);
-  const fetchMaterials = async () => {
-  try {
-    const token = localStorage.getItem("token");
-
-    const res = await fetch(`${API}/api/materials`, {
-      headers: {
-        Authorization: "Bearer " + token,
-      },
-    });
-
-    const data = await res.json();
-    console.log("MATERIALS:", data);
-
-    setMaterials(data);
-
-  } catch (error) {
-    console.error("MATERIALS ERROR:", error);
-  }
-};
   const fetchUsers = async () => {
-    try {
-      const token = localStorage.getItem("token");
-
-      const res = await fetch(`${API}/api/users`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await res.json();
-      console.log("USERS:", data);
-      setUsers(data);
-
-    } catch (error) {
-      console.error(error);
-    }
+    const token = localStorage.getItem("token");
+    const res = await fetch(`${API}/api/users`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    setUsers(await res.json());
   };
 
-  /* =========================
-     FETCH PAYMENTS
-  ========================= */
   const fetchPayments = async () => {
-    try {
-      const token = localStorage.getItem("token");
-
-      const res = await fetch(`${API}/api/payments`, {
-        headers: {
-          Authorization: "Bearer " + token,
-        },
-      });
-
-      const data = await res.json();
-      console.log("PAYMENTS:", data);
-
-      setPayments(data);
-
-    } catch (error) {
-      console.error("PAYMENTS ERROR:", error);
-    }
+    const token = localStorage.getItem("token");
+    const res = await fetch(`${API}/api/payments`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    setPayments(await res.json());
   };
 
-  /* =========================
-     LOAD DATA
-  ========================= */
+  const fetchMaterials = async () => {
+    const token = localStorage.getItem("token");
+    const res = await fetch(`${API}/api/materials`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    setMaterials(await res.json());
+  };
+
   useEffect(() => {
     fetchUsers();
     fetchPayments();
     fetchMaterials();
-    setLoading(false);
   }, []);
 
   /* =========================
@@ -131,49 +71,28 @@ const card = darkMode ? "bg-gray-800 text-white" : "bg-white text-black";
      ACTIONS
   ========================= */
   const approveUser = async (id) => {
-    try {
-      const token = localStorage.getItem("token");
+    const token = localStorage.getItem("token");
 
-      const res = await fetch(`${API}/api/users/approve/${id}`, {
-        method: "PUT",
-        headers: {
-          Authorization: "Bearer " + token,
-        },
-      });
+    await fetch(`${API}/api/users/approve/${id}`, {
+      method: "PUT",
+      headers: { Authorization: "Bearer " + token },
+    });
 
-      const data = await res.json();
-      console.log("APPROVED:", data);
-
-      fetchUsers();
-      fetchPayments();
-
-    } catch (error) {
-      console.error("APPROVE ERROR:", error);
-    }
+    fetchUsers();
+    fetchPayments();
   };
 
   const rejectUser = async (id) => {
-    try {
-      const token = localStorage.getItem("token");
+    const token = localStorage.getItem("token");
 
-      await fetch(`${API}/api/users/reject/${id}`, {
-        method: "PUT",
-        headers: {
-          Authorization: "Bearer " + token,
-        },
-      });
+    await fetch(`${API}/api/users/reject/${id}`, {
+      method: "PUT",
+      headers: { Authorization: "Bearer " + token },
+    });
 
-      fetchUsers();
-      fetchPayments();
-
-    } catch (error) {
-      console.error("REJECT ERROR:", error);
-    }
+    fetchUsers();
+    fetchPayments();
   };
-
-  // 🔥 NEW: Payment-specific handlers (same logic but clearer)
-  const approvePayment = (id) => approveUser(id);
-  const rejectPayment = (id) => rejectUser(id);
 
   const deleteUser = async (id) => {
     if (!window.confirm("Delete user?")) return;
@@ -206,8 +125,6 @@ const card = darkMode ? "bg-gray-800 text-white" : "bg-white text-black";
       u.email?.toLowerCase().includes(search.toLowerCase())
   );
 
-  const ranked = [...results].sort((a, b) => b.score - a.score);
-
   const theme = darkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-black";
   const card = darkMode ? "bg-gray-800 text-white" : "bg-white text-black";
 
@@ -222,32 +139,19 @@ const card = darkMode ? "bg-gray-800 text-white" : "bg-white text-black";
         <h1 className="text-3xl font-bold mb-8">Admin Panel</h1>
 
         <ul className="space-y-3 text-sm">
-
-  <li onClick={()=>setActive("dashboard")} className="cursor-pointer p-3">Dashboard</li>
-
-  <li onClick={()=>setActive("payments")} className="cursor-pointer p-3">Payments</li>
-
-  <li onClick={()=>setActive("users")} className="cursor-pointer p-3">Users</li>
-
-<li onClick={()=>setActive("teachers")} className="cursor-pointer p-3">Teachers</li>
-
-  <li onClick={()=>setActive("materials")} className="cursor-pointer p-3">Materials</li>
-
-  <li onClick={()=>setActive("live")} className="cursor-pointer p-3">Live Classes</li>
-
-  <li onClick={()=>setActive("notices")} className="cursor-pointer p-3">Notices</li>
-
-  <li onClick={()=>setActive("report")} className="cursor-pointer p-3">Report</li>
-
-  <li onClick={()=>setActive("statistics")} className="cursor-pointer p-3">Statistics</li>
-
-  <li onClick={()=>setActive("profile")} className="cursor-pointer p-3">Profile</li>
-
-  <li onClick={()=>setActive("settings")} className="cursor-pointer p-3">Settings</li>
-
-  <li onClick={()=>setActive("about")} className="cursor-pointer p-3">About</li>
-
-</ul>
+          <li onClick={()=>setActive("dashboard")} className="p-3 cursor-pointer">Dashboard</li>
+          <li onClick={()=>setActive("payments")} className="p-3 cursor-pointer">Payments</li>
+          <li onClick={()=>setActive("users")} className="p-3 cursor-pointer">Users</li>
+          <li onClick={()=>setActive("teachers")} className="p-3 cursor-pointer">Teachers</li>
+          <li onClick={()=>setActive("materials")} className="p-3 cursor-pointer">Materials</li>
+          <li onClick={()=>setActive("live")} className="p-3 cursor-pointer">Live Classes</li>
+          <li onClick={()=>setActive("notices")} className="p-3 cursor-pointer">Notices</li>
+          <li onClick={()=>setActive("report")} className="p-3 cursor-pointer">Report</li>
+          <li onClick={()=>setActive("statistics")} className="p-3 cursor-pointer">Statistics</li>
+          <li onClick={()=>setActive("profile")} className="p-3 cursor-pointer">Profile</li>
+          <li onClick={()=>setActive("settings")} className="p-3 cursor-pointer">Settings</li>
+          <li onClick={()=>setActive("about")} className="p-3 cursor-pointer">About</li>
+        </ul>
 
         <button onClick={logout} className="mt-8 w-full bg-red-500 py-3 rounded-xl">
           Logout
@@ -264,58 +168,26 @@ const card = darkMode ? "bg-gray-800 text-white" : "bg-white text-black";
         {/* DASHBOARD */}
         {active === "dashboard" && (
           <div className="grid md:grid-cols-4 gap-6">
-            <div className={`${card} p-6 rounded-2xl shadow`}>
-              <p>Students</p>
-              <h2 className="text-3xl font-bold text-blue-500">{students.length}</h2>
-            </div>
-
-            <div className={`${card} p-6 rounded-2xl shadow`}>
-              <p>Teachers</p>
-              <h2 className="text-3xl font-bold text-green-500">{teachers.length}</h2>
-            </div>
-
-            <div className={`${card} p-6 rounded-2xl shadow`}>
-              <p>Pending</p>
-              <h2 className="text-3xl font-bold text-orange-500">{pending.length}</h2>
-            </div>
-
-            <div className={`${card} p-6 rounded-2xl shadow`}>
-              <p>Approved</p>
-              <h2 className="text-3xl font-bold text-purple-500">{approved.length}</h2>
-            </div>
+            <div className={`${card} p-6 rounded-2xl`}><p>Students</p><h2>{students.length}</h2></div>
+            <div className={`${card} p-6 rounded-2xl`}><p>Teachers</p><h2>{teachers.length}</h2></div>
+            <div className={`${card} p-6 rounded-2xl`}><p>Pending</p><h2>{pending.length}</h2></div>
+            <div className={`${card} p-6 rounded-2xl`}><p>Approved</p><h2>{approved.length}</h2></div>
           </div>
         )}
 
         {/* USERS */}
         {active === "users" && (
-          <div className={`${card} p-8 rounded-2xl shadow`}>
-            <input
-              placeholder="Search users..."
-              value={search}
-              onChange={(e)=>setSearch(e.target.value)}
-              className="w-full border p-3 rounded-xl mb-6 text-black"
-            />
-
-            {filtered.map((u)=>(
-              <div key={u.id} className="border-b py-4 flex justify-between">
-                <div>
-                  <p className="font-bold">{u.name}</p>
-                  <p>{u.email} ({u.role})</p>
-                </div>
-
-                <div className="space-x-2">
-                  {parseSub(u.subscription).status === "pending" && (
-                    <>
-                      <button onClick={()=>approveUser(u.id)} className="bg-green-500 text-white px-4 py-2 rounded-xl">
-                        Approve
-                      </button>
-
-                      <button onClick={()=>rejectUser(u.id)} className="bg-red-500 text-white px-4 py-2 rounded-xl">
-                        Reject
-                      </button>
-                    </>
-                  )}
-                </div>
+          <div className={`${card} p-6 rounded-xl`}>
+            <input value={search} onChange={(e)=>setSearch(e.target.value)} placeholder="Search..." className="w-full p-3 border mb-4"/>
+            {filtered.map(u => (
+              <div key={u.id} className="flex justify-between py-3 border-b">
+                <div>{u.name} ({u.role})</div>
+                {parseSub(u.subscription).status === "pending" && (
+                  <div>
+                    <button onClick={()=>approveUser(u.id)}>Approve</button>
+                    <button onClick={()=>rejectUser(u.id)}>Reject</button>
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -323,174 +195,53 @@ const card = darkMode ? "bg-gray-800 text-white" : "bg-white text-black";
 
         {/* PAYMENTS */}
         {active === "payments" && (
-          <div className={`${card} p-8 rounded-2xl shadow`}>
-            <h2 className="text-2xl font-bold mb-6">Payment Requests</h2>
-
-            {payments.length === 0 && <p>No payments yet</p>}
-
-            {payments.map((p) => (
-              <div key={p.id} className="border-b py-4 flex justify-between">
+          <div className={`${card} p-6`}>
+            {payments.map(p => (
+              <div key={p.id} className="flex justify-between border-b py-3">
+                <div>{p.email}</div>
                 <div>
-                  <p className="font-bold">{p.email}</p>
-                  <p>UGX {p.amount}</p>
-                </div>
-
-                <div className="space-x-2">
-                  <button onClick={() => approvePayment(p.userId || p.id)} className="bg-green-500 text-white px-4 py-2 rounded-xl">
-                    Approve
-                  </button>
-
-                  <button onClick={() => rejectPayment(p.userId || p.id)} className="bg-red-500 text-white px-4 py-2 rounded-xl">
-                    Reject
-                  </button>
+                  <button onClick={()=>approveUser(p.userId || p.id)}>Approve</button>
+                  <button onClick={()=>rejectUser(p.userId || p.id)}>Reject</button>
                 </div>
               </div>
             ))}
           </div>
         )}
 
+        {/* TEACHERS */}
+        {active === "teachers" && (
+          <div className={`${card} p-6`}>
+            {teachers.map(t => (
+              <div key={t.id} className="flex justify-between border-b py-3">
+                <div>{t.name}</div>
+                <button onClick={()=>deleteUser(t.id)}>Remove</button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* MATERIALS */}
+        {active === "materials" && (
+          <div className={`${card} p-6`}>
+            {materials.map(m => (
+              <div key={m.id} className="border-b py-3">
+                <p>{m.title}</p>
+                <a href={m.link}>Open</a>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* EMPTY TABS (NEXT STEP BACKEND) */}
+        {active === "live" && <div className={card}>Live system coming...</div>}
+        {active === "notices" && <div className={card}>Notices system coming...</div>}
+        {active === "report" && <div className={card}>Reports coming...</div>}
+        {active === "statistics" && <div className={card}>Stats coming...</div>}
+        {active === "profile" && <div className={card}>{admin.name}</div>}
+        {active === "settings" && <div className={card}><button onClick={()=>setDarkMode(!darkMode)}>Toggle Theme</button></div>}
+        {active === "about" && <div className={card}>Maximum Scholars Uganda</div>}
+
       </div>
     </div>
   );
 }
-
-{/* TEACHERS */}
-{active === "teachers" && (
-  <div className={`${card} p-8 rounded-2xl shadow`}>
-    <h2 className="text-2xl font-bold mb-6">Teachers</h2>
-
-    {teachers.length === 0 && <p>No teachers found</p>}
-
-    {teachers.map((t) => (
-      <div key={t.id} className="border-b py-4 flex justify-between">
-        <div>
-          <p className="font-bold">{t.name}</p>
-          <p className="text-sm text-gray-500">{t.email}</p>
-        </div>
-
-        <button
-          onClick={() => deleteUser(t.id)}
-          className="bg-red-500 text-white px-4 py-2 rounded-xl"
-        >
-          Remove
-        </button>
-      </div>
-    ))}
-  </div>
-)}
-
-{/* MATERIALS */}
-{active === "materials" && (
-  <div className={`${card} p-8 rounded-2xl shadow`}>
-    <h2 className="text-2xl font-bold mb-6">All Materials</h2>
-
-    {materials.length === 0 && <p>No materials uploaded</p>}
-
-    {materials.map((m, i) => (
-      <div key={i} className="border-b py-4">
-        <p className="font-bold">{m.title}</p>
-        <p className="text-sm">{m.subject}</p>
-        <a href={m.link} className="text-blue-500 text-sm" target="_blank">
-          View Material
-        </a>
-      </div>
-    ))}
-  </div>
-)}
-
-{/* LIVE CLASSES */}
-{active === "live" && (
-  <div className={`${card} p-8 rounded-2xl shadow`}>
-    <h2 className="text-2xl font-bold mb-6">Live Classes</h2>
-
-    <p>Status: 
-      <span className="font-bold ml-2">
-        {liveStatus || "Offline"}
-      </span>
-    </p>
-
-    <p>Teacher: {liveTeacher || "-"}</p>
-    <p>Subject: {liveSubject || "-"}</p>
-
-    <button
-      onClick={() => {
-        localStorage.setItem("liveClassStatus", "Live");
-        alert("Live class started");
-      }}
-      className="mt-4 bg-green-500 text-white px-4 py-2 rounded-xl"
-    >
-      Start Live
-    </button>
-
-    <button
-      onClick={() => {
-        localStorage.setItem("liveClassStatus", "Offline");
-        alert("Live class ended");
-      }}
-      className="mt-4 ml-2 bg-red-500 text-white px-4 py-2 rounded-xl"
-    >
-      End Live
-    </button>
-  </div>
-)}
-
-{/* NOTICES */}
-{active === "notices" && (
-  <div className={`${card} p-8 rounded-2xl shadow`}>
-    <h2 className="text-2xl font-bold mb-6">Notices</h2>
-
-    <textarea
-      placeholder="Write announcement..."
-      className="w-full border p-4 rounded-xl mb-4 text-black"
-      id="noticeBox"
-    />
-
-    <button
-      onClick={() => {
-        const text = document.getElementById("noticeBox").value;
-        localStorage.setItem("notice", text);
-        alert("Notice saved");
-      }}
-      className="bg-blue-500 text-white px-4 py-2 rounded-xl"
-    >
-      Save Notice
-    </button>
-  </div>
-)}
-
-{/* PROFILE */}
-{active === "profile" && (
-  <div className={`${card} p-8 rounded-2xl shadow`}>
-    <h2 className="text-2xl font-bold mb-6">Admin Profile</h2>
-
-    <p><b>Name:</b> {admin.name}</p>
-    <p><b>Email:</b> {admin.email}</p>
-  </div>
-)}
-
-{/* SETTINGS */}
-{active === "settings" && (
-  <div className={`${card} p-8 rounded-2xl shadow`}>
-    <h2 className="text-2xl font-bold mb-6">Settings</h2>
-
-    <button
-      onClick={() => setDarkMode(!darkMode)}
-      className="bg-gray-800 text-white px-4 py-2 rounded-xl"
-    >
-      Toggle Dark Mode
-    </button>
-  </div>
-)}
-
-{/* ABOUT */}
-{active === "about" && (
-  <div className={`${card} p-8 rounded-2xl shadow`}>
-    <h2 className="text-2xl font-bold mb-6">About System</h2>
-
-    <p>
-      Welcome to Maximo Scholars Uganda – your premier online learning hub designed to help students achieve academic excellence. We offer interactive lessons across a wide range of subjects including Biology, Physics, Chemistry, Maths, Geography, Economics, History, Divinity, Entrepreneurship, and ICT.
-Our experienced educators provide clear, engaging, and results-driven instruction, tailored to learners from top schools across Uganda. With flexible online classes and a supportive learning environment, Maximo Scholars Uganda makes studying smarter, easier, and more effective.
-Join us today and unlock your full academic potential!
-    </p>
-  </div>
-)}
