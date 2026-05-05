@@ -146,14 +146,34 @@ export default function Dashboard() {
       </aside>
 
       <main className="flex-1 p-6 md:p-10 md:ml-72">
-        <div className="flex items-center justify-between gap-4 mb-8">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between mb-8">
           <div>
-            <h1 className="text-4xl font-bold">Welcome, {user.name}</h1>
-            <p className="text-slate-600 mt-2">Access your paid subjects, materials, and live classes here.</p>
+            <p className="text-sm uppercase tracking-[0.25em] text-slate-500 mb-2">Student Dashboard</p>
+            <h1 className="text-4xl font-bold">Welcome back, {user.name}</h1>
+            <p className="text-slate-600 mt-2 max-w-2xl">Your learning progress, materials, and live sessions are all organized in one responsive student dashboard.</p>
           </div>
-          <button className="md:hidden rounded-2xl bg-slate-800 px-4 py-3" onClick={() => setMenuOpen(true)}>
+          <button className="md:hidden rounded-2xl bg-slate-800 px-4 py-3 text-white" onClick={() => setMenuOpen(true)}>
             Menu
           </button>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4 mb-6">
+          <div className="rounded-3xl bg-gradient-to-r from-blue-700 to-indigo-700 p-6 text-white shadow-xl">
+            <p className="text-sm uppercase tracking-[0.2em]">Paid subjects</p>
+            <p className="mt-4 text-4xl font-bold">{subjects.length}</p>
+          </div>
+          <div className="rounded-3xl bg-white p-6 shadow-xl border border-slate-200">
+            <p className="text-sm uppercase tracking-[0.2em] text-slate-500">Available materials</p>
+            <p className="mt-4 text-4xl font-bold text-slate-900">{myMaterials.length}</p>
+          </div>
+          <div className="rounded-3xl bg-white p-6 shadow-xl border border-slate-200">
+            <p className="text-sm uppercase tracking-[0.2em] text-slate-500">Live sessions</p>
+            <p className="mt-4 text-4xl font-bold text-slate-900">{currentLive ? 1 : 0}</p>
+          </div>
+          <div className="rounded-3xl bg-white p-6 shadow-xl border border-slate-200">
+            <p className="text-sm uppercase tracking-[0.2em] text-slate-500">Learning status</p>
+            <p className="mt-4 text-4xl font-bold text-slate-900">Active</p>
+          </div>
         </div>
 
         {loading ? (
@@ -161,22 +181,17 @@ export default function Dashboard() {
         ) : (
           <div className="space-y-6">
             {active === "dashboard" && (
-              <div className="grid gap-6 md:grid-cols-4">
-                <div className={card}>
-                  <p className="text-sm uppercase text-slate-500">Paid Subjects</p>
-                  <p className="mt-4 text-4xl font-bold">{subjects.length}</p>
-                </div>
-                <div className={card}>
-                  <p className="text-sm uppercase text-slate-500">Materials</p>
-                  <p className="mt-4 text-4xl font-bold">{myMaterials.length}</p>
-                </div>
-                <div className={card}>
-                  <p className="text-sm uppercase text-slate-500">Live Classes</p>
-                  <p className="mt-4 text-4xl font-bold">{currentLive ? 1 : 0}</p>
-                </div>
-                <div className={card}>
-                  <p className="text-sm uppercase text-slate-500">Status</p>
-                  <p className="mt-4 text-4xl font-bold">Active</p>
+              <div className="grid gap-6">
+                <div className="rounded-3xl bg-white border border-slate-200 p-6 shadow-sm">
+                  <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <div>
+                      <p className="text-sm uppercase tracking-[0.2em] text-slate-500">Progress spotlight</p>
+                      <h2 className="text-2xl font-semibold mt-2">Keep learning with your active subjects.</h2>
+                    </div>
+                    <div className="rounded-3xl bg-slate-50 px-4 py-3 text-slate-700">
+                      Next live class: {currentLive ? currentLive.subject : "None scheduled"}
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -204,22 +219,25 @@ export default function Dashboard() {
                 {myMaterials.length === 0 ? (
                   <p className="text-slate-500">No materials available for your subjects.</p>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="grid gap-4 md:grid-cols-2">
                     {myMaterials.map((item) => (
-                      <div key={item.id} className="rounded-3xl border p-4">
-                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                      <div key={item.id} className="rounded-3xl border border-slate-200 p-5 bg-slate-50 shadow-sm">
+                        <div className="flex flex-col gap-4">
                           <div>
-                            <p className="font-semibold">{item.title}</p>
+                            <p className="text-lg font-semibold">{item.title}</p>
                             <p className="text-sm text-slate-500">{item.subject}</p>
                           </div>
-                          <a
-                            href={item.link}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="rounded-2xl bg-blue-600 px-4 py-2 text-white"
-                          >
-                            Open
-                          </a>
+                          <div className="flex flex-wrap items-center justify-between gap-3">
+                            <span className="rounded-full bg-white px-3 py-1 text-xs uppercase tracking-[0.15em] text-slate-600">{item.type || "Material"}</span>
+                            <a
+                              href={item.link}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="rounded-2xl bg-blue-600 px-4 py-2 text-white"
+                            >
+                              Open
+                            </a>
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -230,20 +248,37 @@ export default function Dashboard() {
 
             {active === "live" && (
               <div className={card}>
-                <h2 className="text-2xl font-semibold mb-4">Live Classes</h2>
+                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                  <div>
+                    <h2 className="text-2xl font-semibold mb-1">Live Classes</h2>
+                    <p className="text-slate-500">Join your scheduled and ongoing sessions from one place.</p>
+                  </div>
+                  {currentLive && (
+                    <span className="rounded-full bg-emerald-100 px-4 py-2 text-sm font-semibold text-emerald-700">Live Now</span>
+                  )}
+                </div>
+
                 {currentLive ? (
-                  <div className="space-y-4">
-                    <div className="rounded-3xl border p-4">
-                      <p className="font-semibold">{currentLive.subject}</p>
-                      <p className="text-sm text-slate-500">Teacher: {currentLive.teacherName}</p>
-                      <p className="text-sm">Status: live</p>
+                  <div className="mt-6 grid gap-4 md:grid-cols-2">
+                    <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5 shadow-sm">
+                      <p className="text-lg font-semibold">{currentLive.subject}</p>
+                      <p className="mt-2 text-slate-600">Teacher: {currentLive.teacherName}</p>
+                      <p className="text-sm text-slate-500">Room: {currentLive.roomId}</p>
                     </div>
-                    <button onClick={joinLive} className="rounded-2xl bg-blue-600 px-6 py-3 text-white">
-                      Join Live Class
-                    </button>
+                    <div className="rounded-3xl border border-slate-200 p-5 shadow-sm flex items-center justify-between">
+                      <div>
+                        <p className="text-sm uppercase tracking-[0.2em] text-slate-500">Ready to join?</p>
+                        <p className="mt-2 text-xl font-semibold">Live session is available now.</p>
+                      </div>
+                      <button onClick={joinLive} className="rounded-2xl bg-blue-600 px-6 py-3 text-white">
+                        Join Now
+                      </button>
+                    </div>
                   </div>
                 ) : (
-                  <p className="text-slate-500">No active live class is running for your subjects.</p>
+                  <div className="mt-6 rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-6 text-slate-500">
+                    No active live class is running for your subjects yet. Check back later or contact your teacher for the next session.
+                  </div>
                 )}
               </div>
             )}

@@ -188,14 +188,21 @@ export default function Teacher() {
       </aside>
 
       <main className="flex-1 p-6 md:p-10 md:ml-72">
-        <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h1 className="text-4xl font-bold">Welcome, {teacher.name}</h1>
-            <p className="text-slate-600 mt-2">Manage your assigned subjects and launch live classes.</p>
-          </div>
-          <div className="space-y-2 text-right">
-            <p className="text-slate-500">Subjects assigned: {assignedSubjects.length}</p>
-            <p className="text-slate-500">Current live sessions: {currentLive.length}</p>
+        <div className="mb-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <p className="text-sm uppercase tracking-[0.25em] text-slate-500">Teacher Dashboard</p>
+              <h1 className="text-4xl font-bold">Welcome, {teacher.name}</h1>
+              <p className="text-slate-600 mt-2 max-w-2xl">Share materials, manage your live sessions, and support students with a professional classroom experience.</p>
+            </div>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="rounded-3xl bg-slate-50 px-4 py-3 text-slate-700 shadow-sm">
+                Subjects assigned: <span className="font-semibold">{assignedSubjects.length}</span>
+              </div>
+              <div className="rounded-3xl bg-slate-50 px-4 py-3 text-slate-700 shadow-sm">
+                Live sessions: <span className="font-semibold">{currentLive.length}</span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -205,17 +212,17 @@ export default function Teacher() {
           <div className="space-y-6">
             {active === "dashboard" && (
               <div className="grid gap-6 md:grid-cols-3">
-                <div className={card}>
-                  <p className="text-sm uppercase text-slate-500">Assigned Subjects</p>
-                  <p className="mt-4 text-4xl font-bold">{assignedSubjects.length}</p>
+                <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                  <p className="text-sm uppercase tracking-[0.2em] text-slate-500">Assigned subjects</p>
+                  <p className="mt-4 text-4xl font-bold text-slate-900">{assignedSubjects.length}</p>
                 </div>
-                <div className={card}>
-                  <p className="text-sm uppercase text-slate-500">Materials</p>
-                  <p className="mt-4 text-4xl font-bold">{subjectMaterials.length}</p>
+                <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                  <p className="text-sm uppercase tracking-[0.2em] text-slate-500">Materials uploaded</p>
+                  <p className="mt-4 text-4xl font-bold text-slate-900">{subjectMaterials.length}</p>
                 </div>
-                <div className={card}>
-                  <p className="text-sm uppercase text-slate-500">Live Sessions</p>
-                  <p className="mt-4 text-4xl font-bold">{currentLive.length}</p>
+                <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                  <p className="text-sm uppercase tracking-[0.2em] text-slate-500">Live sessions active</p>
+                  <p className="mt-4 text-4xl font-bold text-slate-900">{currentLive.length}</p>
                 </div>
               </div>
             )}
@@ -245,21 +252,20 @@ export default function Teacher() {
 
             {active === "materials" && (
               <div className={card}>
-                <div className="mb-6 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-                  <div>
-                    <h2 className="text-2xl font-semibold mb-3">Materials for your subjects</h2>
-                    <p className="text-slate-500">
-                      Upload reading materials, tests, quizzes, and reference resources for your assigned subjects.
-                    </p>
+                <div className="mb-6 rounded-3xl border border-slate-200 bg-slate-50 p-6 shadow-sm">
+                  <div className="grid gap-6 md:grid-cols-2 md:items-end">
+                    <div>
+                      <h2 className="text-2xl font-semibold mb-2">Materials for your subjects</h2>
+                      <p className="text-slate-500">Upload reading materials, tests, quizzes, and reference resources for your assigned subjects.</p>
+                    </div>
+                    <div className="rounded-3xl bg-white border border-slate-200 p-5 shadow-sm">
+                      <p className="text-sm uppercase tracking-[0.2em] text-slate-500">Your next upload</p>
+                      <p className="mt-3 text-lg font-semibold text-slate-900">Get students the resources they need quickly.</p>
+                    </div>
                   </div>
                 </div>
 
-                <div className="grid gap-5 rounded-3xl border border-slate-200 bg-slate-50 p-6 mb-6">
-                  <div>
-                    <p className="text-lg font-semibold mb-2">Add new material</p>
-                    <p className="text-sm text-slate-500">Share useful material with students in a few clicks.</p>
-                  </div>
-
+                <div className="space-y-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
                   <div className="grid gap-4 md:grid-cols-2">
                     <input
                       value={newMaterialTitle}
@@ -317,31 +323,35 @@ export default function Teacher() {
                 </div>
 
                 {subjectMaterials.length === 0 ? (
-                  <p className="text-slate-500">No materials uploaded for your assigned subjects.</p>
+                  <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-6 text-slate-500">
+                    No materials uploaded for your assigned subjects yet. Create your first resource to support learners.
+                  </div>
                 ) : (
-                  <div className="grid gap-4">
+                  <div className="grid gap-4 md:grid-cols-2">
                     {subjectMaterials.map((item) => (
-                      <div key={item.id} className="rounded-3xl border p-5 shadow-sm">
-                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                          <div className="space-y-2">
+                      <div key={item.id} className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+                        <div className="flex flex-col gap-4">
+                          <div>
                             <div className="flex flex-wrap items-center gap-2">
                               <p className="text-lg font-semibold">{item.title}</p>
                               <span className="rounded-full bg-slate-100 px-3 py-1 text-xs uppercase tracking-[0.08em] text-slate-600">
                                 {item.type || "Resource"}
                               </span>
                             </div>
-                            <p className="text-sm text-slate-500">Subject: {item.subject}</p>
-                            {item.description && <p className="text-slate-600">{item.description}</p>}
-                            <p className="text-sm text-slate-500">Uploaded by: {item.teacher}</p>
+                            <p className="text-sm text-slate-500 mt-1">Subject: {item.subject}</p>
                           </div>
-                          <a
-                            href={item.link}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="rounded-2xl bg-blue-600 px-5 py-3 text-white"
-                          >
-                            Open Resource
-                          </a>
+                          {item.description && <p className="text-slate-600">{item.description}</p>}
+                          <div className="flex flex-wrap items-center justify-between gap-3">
+                            <p className="text-sm text-slate-500">Uploaded by: {item.teacher}</p>
+                            <a
+                              href={item.link}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="rounded-2xl bg-blue-600 px-5 py-3 text-white"
+                            >
+                              Open Resource
+                            </a>
+                          </div>
                         </div>
                       </div>
                     ))}

@@ -5,6 +5,7 @@ import {
   Navigate,
   useLocation
 } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
@@ -166,8 +167,41 @@ function WhatsAppButton() {
    APP FINAL
 ========================= */
 export default function App() {
+  const [settings, setSettings] = useState(null);
+  const [settingsError, setSettingsError] = useState("");
+
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const res = await fetch("https://maximum-scholars-1-api.onrender.com/api/settings/public");
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.message || "Failed to load settings");
+        }
+        setSettings(data);
+      } catch (error) {
+        console.error(error);
+        setSettingsError(error.message || "Unable to load settings");
+      }
+    };
+
+    loadSettings();
+  }, []);
+
+  const bannerText = settings?.announcements || (settings?.siteStatus && settings.siteStatus !== "Live" ? `Platform status: ${settings.siteStatus}.` : "");
+
   return (
     <Router>
+      {bannerText && (
+        <div className="bg-blue-900 text-white px-6 py-3 text-center text-sm font-medium">
+          {bannerText}
+        </div>
+      )}
+      {settingsError && (
+        <div className="bg-red-600 text-white px-6 py-3 text-center text-sm font-medium">
+          {settingsError}
+        </div>
+      )}
 
       <Routes>
 

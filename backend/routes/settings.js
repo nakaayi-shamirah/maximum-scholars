@@ -17,6 +17,19 @@ const verifyToken = (req, res, next) => {
   }
 };
 
+router.get("/public", async (req, res) => {
+  try {
+    let settings = await AppSetting.findOne();
+    if (!settings) {
+      settings = await AppSetting.create({});
+    }
+    res.json(settings);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to load public settings" });
+  }
+});
+
 router.get("/", verifyToken, async (req, res) => {
   if (req.user.role !== "admin") {
     return res.status(403).json({ message: "Access denied" });
