@@ -126,11 +126,8 @@ async function createAdmin() {
 
 async function createSampleData() {
   try {
-    const totalUsers = await User.count();
-    if (totalUsers > 1) {
-      console.log("✅ Sample data already present or users exist");
-      return;
-    }
+    const teacherCount = await User.count({ where: { role: "teacher" } });
+    const studentCount = await User.count({ where: { role: "student" } });
 
     const sampleStudents = [
       {
@@ -170,7 +167,9 @@ async function createSampleData() {
         assignedSubjects: ["Mathematics", "Physics"],
         subjects: ["Mathematics", "Physics"],
         subscription: {
-          status: "active"
+          status: "active",
+          approvedAt: new Date(),
+          expiresAt: new Date("2026-12-31T23:59:59")
         }
       },
       {
@@ -181,31 +180,60 @@ async function createSampleData() {
         assignedSubjects: ["Biology", "Chemistry"],
         subjects: ["Biology", "Chemistry"],
         subscription: {
-          status: "active"
+          status: "active",
+          approvedAt: new Date(),
+          expiresAt: new Date("2026-12-31T23:59:59")
         }
       }
     ];
 
-    for (const account of [...sampleStudents, ...sampleTeachers]) {
-      const existing = await User.findOne({ where: { email: account.email } });
-      if (!existing) {
-        const hashed = await bcrypt.hash(account.password, 10);
-        await User.create({
-          name: account.name,
-          email: account.email,
-          password: hashed,
-          role: account.role,
-          subjects: account.subjects || [],
-          assignedSubjects: account.assignedSubjects || [],
-          subscription: account.subscription || {
-            status: "inactive",
-            approvedAt: null,
-            expiresAt: null,
-            amount: 0,
-            plan: ""
-          },
-          isActive: true
-        });
+    if (studentCount === 0) {
+      for (const account of sampleStudents) {
+        const existing = await User.findOne({ where: { email: account.email } });
+        if (!existing) {
+          const hashed = await bcrypt.hash(account.password, 10);
+          await User.create({
+            name: account.name,
+            email: account.email,
+            password: hashed,
+            role: account.role,
+            subjects: account.subjects || [],
+            assignedSubjects: account.assignedSubjects || [],
+            subscription: account.subscription || {
+              status: "inactive",
+              approvedAt: null,
+              expiresAt: null,
+              amount: 0,
+              plan: ""
+            },
+            isActive: true
+          });
+        }
+      }
+    }
+
+    if (teacherCount === 0) {
+      for (const account of sampleTeachers) {
+        const existing = await User.findOne({ where: { email: account.email } });
+        if (!existing) {
+          const hashed = await bcrypt.hash(account.password, 10);
+          await User.create({
+            name: account.name,
+            email: account.email,
+            password: hashed,
+            role: account.role,
+            subjects: account.subjects || [],
+            assignedSubjects: account.assignedSubjects || [],
+            subscription: account.subscription || {
+              status: "inactive",
+              approvedAt: null,
+              expiresAt: null,
+              amount: 0,
+              plan: ""
+            },
+            isActive: true
+          });
+        }
       }
     }
 
@@ -235,10 +263,11 @@ async function createSampleData() {
 
     const liveCount = await LiveClass.count();
     if (liveCount === 0) {
+      const sampleTeacher = await User.findOne({ where: { role: "teacher" } });
       await LiveClass.create({
         subject: "Mathematics",
-        teacherId: 3,
-        teacherName: "Mr. Kato",
+        teacherId: sampleTeacher ? sampleTeacher.id : null,
+        teacherName: sampleTeacher ? sampleTeacher.name : "Maximo Tutor",
         roomId: `room_Mathematics_${Date.now()}`,
         status: "live"
       });

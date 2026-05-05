@@ -20,6 +20,18 @@ export default function Payment() {
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
+    if (!user?.id || !user.email) {
+      alert("Please login again before submitting payment.");
+      navigate("/login");
+      return;
+    }
+
+    if (!plan || subjects.length === 0 || amount <= 0) {
+      alert("Please choose a study plan and select subjects before submitting payment.");
+      navigate("/subjects");
+      return;
+    }
+
     if (!method) {
       alert("Select payment method.");
       return;
@@ -63,6 +75,23 @@ export default function Payment() {
       setLoading(false);
     }
   };
+
+  if (!plan || subjects.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-100 p-6 md:p-10 flex items-center justify-center">
+        <div className="max-w-3xl bg-white rounded-3xl shadow p-10 text-center">
+          <h1 className="text-3xl font-bold text-blue-700 mb-4">Complete Your Plan Selection</h1>
+          <p className="text-gray-600 mb-8">You must choose a study plan and select subjects before submitting payment.</p>
+          <button
+            onClick={() => navigate("/subjects")}
+            className="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-2xl font-semibold"
+          >
+            Choose Subjects
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 p-6 md:p-10">

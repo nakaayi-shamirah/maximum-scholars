@@ -125,12 +125,12 @@ export default function Admin() {
   };
 
   const handleApprove = async (id) => {
-    await safeFetch(`${API}/api/users/approve/${id}`, { method: "PUT" });
+    await safeFetch(`${API}/api/auth/approve/${id}`, { method: "PUT" });
     requestRefresh();
   };
 
   const handleReject = async (id) => {
-    await safeFetch(`${API}/api/users/reject/${id}`, { method: "PUT" });
+    await safeFetch(`${API}/api/auth/reject/${id}`, { method: "PUT" });
     requestRefresh();
   };
 

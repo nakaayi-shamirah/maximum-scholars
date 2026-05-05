@@ -55,7 +55,13 @@ export default function LiveClasses() {
 
   const handleEnd = async (live) => {
     try {
-      await fetch(`${API}/api/live/end/${live.id}`, { method: "PUT" });
+      const token = localStorage.getItem("token");
+      await fetch(`${API}/api/live/end/${live.id}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       setActiveClass(null);
       setLiveClasses(liveClasses.map((item) => (item.id === live.id ? { ...item, status: "ended" } : item)));
       localStorage.removeItem("liveClassStatus");
