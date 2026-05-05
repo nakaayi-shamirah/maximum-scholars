@@ -14,7 +14,7 @@ export default function Landing() {
     "Divinity",
     "Entrepreneurship",
     "Agriculture",
-    " SUB ICT",
+    "SUB ICT",
     "SUB MATH"
   ];
 
@@ -64,15 +64,13 @@ export default function Landing() {
             </p>
 
             <h1 className="text-5xl font-bold leading-tight mb-6">
-              Learn Anytime,
+              Welcome to Maximo Scholars Uganda,
               <br />
-              Anywhere.
+              your premier online learning hub.
             </h1>
 
             <p className="text-lg text-blue-100 mb-8">
-              Premium online learning for A-Level students in Uganda.
-              Live classes, expert teachers, study materials,
-              quizzes, and academic success.
+              Welcome to Maximo Scholars Uganda – your premier online learning hub designed to help students achieve academic excellence. We offer interactive lessons across a wide range of subjects including Biology, Physics, Chemistry, Maths, Geography, Economics, History, Divinity, Entrepreneurship, and ICT.
             </p>
 
             <div className="flex gap-4 flex-wrap">
@@ -121,10 +119,8 @@ export default function Landing() {
           </h2>
 
           <p className="text-gray-600 text-lg max-w-3xl mx-auto">
-            Maximo Scholars Uganda is a modern online learning
-            platform built to help A-Level students achieve academic
-            excellence through expert guidance, flexible digital
-            learning, and exam-focused teaching.
+            Our experienced educators provide clear, engaging, and results-driven instruction, tailored to learners from top schools across Uganda. With flexible online classes and a supportive learning environment, Maximo Scholars Uganda makes studying smarter, easier, and more effective.
+            Join us today and unlock your full academic potential!
           </p>
         </div>
 

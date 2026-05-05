@@ -12,6 +12,18 @@ const Material = sequelize.define("Material", {
     allowNull: false
   },
 
+  type: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    defaultValue: "Reading Material"
+  },
+
+  description: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+    defaultValue: ""
+  },
+
   link: {
     type: DataTypes.TEXT,
     allowNull: false

@@ -36,6 +36,24 @@ export default function Admin() {
   const [teacherPassword, setTeacherPassword] = useState("");
   const [teacherSubjects, setTeacherSubjects] = useState([]);
 
+  const [newMaterialTitle, setNewMaterialTitle] = useState("");
+  const [newMaterialSubject, setNewMaterialSubject] = useState(SUBJECT_OPTIONS[0]);
+  const [newMaterialType, setNewMaterialType] = useState("Reading Material");
+  const [newMaterialLink, setNewMaterialLink] = useState("");
+  const [newMaterialDescription, setNewMaterialDescription] = useState("");
+  const [newMaterialTeacher, setNewMaterialTeacher] = useState(admin.name || "System Admin");
+  const [materialMessage, setMaterialMessage] = useState("");
+  const [materialError, setMaterialError] = useState("");
+  const [materialFilter, setMaterialFilter] = useState("All");
+
+  const [siteStatus, setSiteStatus] = useState("Live");
+  const [defaultCurrency, setDefaultCurrency] = useState("UGX");
+  const [supportEmail, setSupportEmail] = useState("support@maximumscholars.com");
+  const [defaultPaymentPlan, setDefaultPaymentPlan] = useState("A");
+  const [autoApprovePayments, setAutoApprovePayments] = useState(false);
+  const [announcements, setAnnouncements] = useState("");
+  const [settingsMessage, setSettingsMessage] = useState("");
+
   const safeFetch = async (url, options = {}) => {
     try {
       const headers = {
@@ -124,13 +142,93 @@ export default function Admin() {
     }
   };
 
+  const handleUploadMaterial = async () => {
+    if (!newMaterialTitle || !newMaterialSubject || !newMaterialLink || !newMaterialType) {
+      setMaterialError("Please fill in all required fields for the new material.");
+      setMaterialMessage("");
+      return;
+    }
+
+    setMaterialError("");
+    setMaterialMessage("");
+
+    const payload = {
+      title: newMaterialTitle,
+      subject: newMaterialSubject,
+      link: newMaterialLink,
+      teacher: newMaterialTeacher || admin.name || "System Admin",
+      type: newMaterialType,
+      description: newMaterialDescription,
+    };
+
+    const data = await safeFetch(`${API}/api/materials`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (data) {
+      setMaterialMessage("Material added successfully.");
+      setNewMaterialTitle("");
+      setNewMaterialLink("");
+      setNewMaterialDescription("");
+      setNewMaterialType("Reading Material");
+      setNewMaterialSubject(SUBJECT_OPTIONS[0]);
+      requestRefresh();
+    }
+  };
+
+  const handleDeleteMaterial = async (id) => {
+    await safeFetch(`${API}/api/materials/${id}`, {
+      method: "DELETE",
+    });
+    requestRefresh();
+  };
+
+  const handleSaveSettings = async () => {
+    const payload = {
+      siteStatus,
+      defaultCurrency,
+      supportEmail,
+      defaultPaymentPlan,
+      autoApprovePayments,
+      announcements,
+    };
+
+    const data = await safeFetch(`${API}/api/settings`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (data) {
+      setSettingsMessage("Settings saved successfully.");
+    }
+  };
+
+  const handleLoadSettings = async () => {
+    const data = await safeFetch(`${API}/api/settings`);
+    if (data) {
+      setSiteStatus(data.siteStatus || "Live");
+      setDefaultCurrency(data.defaultCurrency || "UGX");
+      setSupportEmail(data.supportEmail || "support@maximumscholars.com");
+      setDefaultPaymentPlan(data.defaultPaymentPlan || "A");
+      setAutoApprovePayments(Boolean(data.autoApprovePayments));
+      setAnnouncements(data.announcements || "");
+    }
+  };
+
+  useEffect(() => {
+    handleLoadSettings();
+  }, []);
+
   const handleApprove = async (id) => {
-    await safeFetch(`${API}/api/auth/approve/${id}`, { method: "PUT" });
+    await safeFetch(`${API}/api/users/approve/${id}`, { method: "PUT" });
     requestRefresh();
   };
 
   const handleReject = async (id) => {
-    await safeFetch(`${API}/api/auth/reject/${id}`, { method: "PUT" });
+    await safeFetch(`${API}/api/users/reject/${id}`, { method: "PUT" });
     requestRefresh();
   };
 
@@ -403,29 +501,131 @@ export default function Admin() {
 
               {active === "materials" && (
                 <div className={card}>
-                  <h2 className="text-2xl font-semibold mb-4">Materials</h2>
-                  {materials.length === 0 ? (
-                    <p>No materials available.</p>
+                  <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] mb-6">
+                    <div>
+                      <h2 className="text-2xl font-semibold mb-2">Materials</h2>
+                      <p className="text-slate-500">
+                        Add study resources, quizzes, tests and reading files across all subjects.
+                      </p>
+                    </div>
+                    <div className="space-y-3">
+                      <p className="font-semibold text-slate-700">Quick filters</p>
+                      <div className="flex flex-wrap gap-2">
+                        {['All', 'Reading Material', 'Test', 'Quiz', 'Other'].map((filter) => (
+                          <button
+                            key={filter}
+                            onClick={() => setMaterialFilter(filter)}
+                            className={`rounded-full px-4 py-2 text-sm ${materialFilter === filter ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700'}`}
+                          >
+                            {filter}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mb-8 rounded-3xl border border-slate-200 bg-slate-50 p-6">
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <input
+                        value={newMaterialTitle}
+                        onChange={(e) => setNewMaterialTitle(e.target.value)}
+                        placeholder="Resource title"
+                        className="rounded-2xl border px-4 py-3"
+                      />
+                      <input
+                        value={newMaterialTeacher}
+                        onChange={(e) => setNewMaterialTeacher(e.target.value)}
+                        placeholder="Teacher / source"
+                        className="rounded-2xl border px-4 py-3"
+                      />
+                      <select
+                        value={newMaterialSubject}
+                        onChange={(e) => setNewMaterialSubject(e.target.value)}
+                        className="rounded-2xl border px-4 py-3"
+                      >
+                        {SUBJECT_OPTIONS.map((subject) => (
+                          <option key={subject} value={subject}>{subject}</option>
+                        ))}
+                      </select>
+                      <select
+                        value={newMaterialType}
+                        onChange={(e) => setNewMaterialType(e.target.value)}
+                        className="rounded-2xl border px-4 py-3"
+                      >
+                        <option>Reading Material</option>
+                        <option>Test</option>
+                        <option>Quiz</option>
+                        <option>Other</option>
+                      </select>
+                    </div>
+
+                    <input
+                      value={newMaterialLink}
+                      onChange={(e) => setNewMaterialLink(e.target.value)}
+                      placeholder="Resource link"
+                      className="mt-4 w-full rounded-2xl border px-4 py-3"
+                    />
+                    <textarea
+                      value={newMaterialDescription}
+                      onChange={(e) => setNewMaterialDescription(e.target.value)}
+                      placeholder="Short description"
+                      className="mt-4 w-full rounded-3xl border px-4 py-3"
+                      rows={4}
+                    />
+
+                    <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="space-y-1">
+                        {materialMessage && <p className="text-sm text-emerald-700">{materialMessage}</p>}
+                        {materialError && <p className="text-sm text-red-600">{materialError}</p>}
+                      </div>
+                      <button
+                        onClick={handleUploadMaterial}
+                        className="rounded-2xl bg-emerald-600 px-6 py-3 text-white"
+                      >
+                        Upload New Resource
+                      </button>
+                    </div>
+                  </div>
+
+                  {materials.filter((material) => materialFilter === "All" || material.type === materialFilter).length === 0 ? (
+                    <p className="text-slate-500">No materials match the selected filter.</p>
                   ) : (
                     <div className="grid gap-4">
-                      {materials.map((material) => (
-                        <div key={material.id} className="rounded-2xl border p-4">
-                          <div className="flex flex-wrap items-center justify-between gap-3">
-                            <div>
-                              <p className="font-semibold">{material.title}</p>
-                              <p className="text-sm text-slate-500">{material.subject}</p>
+                      {materials
+                        .filter((material) => materialFilter === "All" || material.type === materialFilter)
+                        .map((material) => (
+                          <div key={material.id} className="rounded-3xl border p-5 shadow-sm">
+                            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                              <div className="space-y-2">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <p className="text-lg font-semibold">{material.title}</p>
+                                  <span className="rounded-full bg-blue-100 px-3 py-1 text-xs uppercase tracking-[0.08em] text-blue-700">
+                                    {material.type || "Resource"}
+                                  </span>
+                                </div>
+                                <p className="text-sm text-slate-500">Subject: {material.subject}</p>
+                                {material.description && <p className="text-slate-600">{material.description}</p>}
+                                <p className="text-sm text-slate-500">Added by: {material.teacher}</p>
+                              </div>
+                              <div className="flex flex-wrap gap-3">
+                                <a
+                                  href={material.link}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="rounded-2xl bg-blue-600 px-4 py-2 text-white"
+                                >
+                                  View
+                                </a>
+                                <button
+                                  onClick={() => handleDeleteMaterial(material.id)}
+                                  className="rounded-2xl bg-red-500 px-4 py-2 text-white"
+                                >
+                                  Remove
+                                </button>
+                              </div>
                             </div>
-                            <a
-                              href={material.link}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="rounded-2xl bg-blue-600 px-4 py-2 text-white"
-                            >
-                              Open
-                            </a>
                           </div>
-                        </div>
-                      ))}
+                        ))}
                     </div>
                   )}
                 </div>
@@ -530,8 +730,91 @@ export default function Admin() {
 
               {active === "settings" && (
                 <div className={card}>
-                  <h2 className="text-2xl font-semibold mb-4">Settings</h2>
-                  <p>Settings are coming soon. For now you can manage classes, teachers and payments.</p>
+                  <h2 className="text-2xl font-semibold mb-4">Platform Settings</h2>
+                  <div className="grid gap-6 lg:grid-cols-2">
+                    <div className="space-y-4 rounded-3xl border border-slate-200 bg-slate-50 p-6">
+                      <div>
+                        <p className="text-sm uppercase tracking-[0.2em] text-slate-500">Platform status</p>
+                        <p className="mt-3 text-slate-700">Control whether new registrations and payment approvals are live.</p>
+                      </div>
+                      <select
+                        value={siteStatus}
+                        onChange={(e) => setSiteStatus(e.target.value)}
+                        className="rounded-2xl border px-4 py-3"
+                      >
+                        <option>Live</option>
+                        <option>Maintenance</option>
+                        <option>Read Only</option>
+                      </select>
+
+                      <div>
+                        <p className="text-sm uppercase tracking-[0.2em] text-slate-500">Default currency</p>
+                        <input
+                          value={defaultCurrency}
+                          onChange={(e) => setDefaultCurrency(e.target.value)}
+                          className="mt-3 w-full rounded-2xl border px-4 py-3"
+                        />
+                      </div>
+
+                      <div>
+                        <p className="text-sm uppercase tracking-[0.2em] text-slate-500">Support contact</p>
+                        <input
+                          value={supportEmail}
+                          onChange={(e) => setSupportEmail(e.target.value)}
+                          className="mt-3 w-full rounded-2xl border px-4 py-3"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-4 rounded-3xl border border-slate-200 bg-slate-50 p-6">
+                      <div>
+                        <p className="text-sm uppercase tracking-[0.2em] text-slate-500">Payment defaults</p>
+                        <p className="mt-3 text-slate-700">Set default payment rules and approval workflows.</p>
+                      </div>
+                      <select
+                        value={defaultPaymentPlan}
+                        onChange={(e) => setDefaultPaymentPlan(e.target.value)}
+                        className="rounded-2xl border px-4 py-3"
+                      >
+                        <option value="A">Plan A</option>
+                        <option value="B">Plan B</option>
+                        <option value="C">Plan C</option>
+                      </select>
+
+                      <label className="flex items-center gap-3 rounded-2xl border px-4 py-3">
+                        <input
+                          type="checkbox"
+                          checked={autoApprovePayments}
+                          onChange={(e) => setAutoApprovePayments(e.target.checked)}
+                        />
+                        <span className="text-sm text-slate-700">Allow automatic approval for low-risk payments</span>
+                      </label>
+
+                      <div>
+                        <p className="text-sm uppercase tracking-[0.2em] text-slate-500">Global announcement</p>
+                        <textarea
+                          value={announcements}
+                          onChange={(e) => setAnnouncements(e.target.value)}
+                          className="mt-3 w-full rounded-3xl border px-4 py-3"
+                          rows={5}
+                          placeholder="Share a message with teachers and students"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="space-y-1">
+                      <p className="text-sm text-slate-500">Save configuration locally for your admin session.</p>
+                      {settingsMessage && <p className="text-sm text-emerald-700">{settingsMessage}</p>}
+                    </div>
+                    <button
+                      onClick={handleSaveSettings}
+                      className="rounded-2xl bg-blue-600 px-6 py-3 text-white"
+                    >
+                      Save Settings
+                    </button>
+                  </div>
                 </div>
               )}
 

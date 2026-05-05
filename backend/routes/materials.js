@@ -33,6 +33,8 @@ router.post("/", async (req, res) => {
     const {
       title,
       subject,
+      type,
+      description,
       link,
       teacher
     } = req.body;
@@ -41,6 +43,8 @@ router.post("/", async (req, res) => {
       await Material.create({
         title,
         subject,
+        type: type || "Reading Material",
+        description: description || "",
         link,
         teacher
       });

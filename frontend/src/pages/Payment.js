@@ -14,10 +14,28 @@ export default function Payment() {
   };
 
   const amount = prices[plan] || 0;
+  const paymentMethods = ["MTN", "Airtel", "Bank Transfer"];
+  const bankDetails = {
+    accountName: "Maximum Scholars Uganda",
+    accountNumber: "1234567890",
+    bankName: "Stanbic Bank",
+  };
   const [method, setMethod] = useState("");
-  const [phone, setPhone] = useState("");
+  const [phone, setPhone] = useState(user.phone || "");
   const [reference, setReference] = useState("");
   const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState("");
+  const supportEmail = "support@maximumscholars.com";
+
+  const copyToClipboard = async (value) => {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(value);
+      setTimeout(() => setCopied(""), 1500);
+    } catch (error) {
+      console.error("Clipboard copy failed", error);
+    }
+  };
 
   const handleSubmit = async () => {
     if (!user?.id || !user.email) {
@@ -103,7 +121,7 @@ export default function Payment() {
           <div className="bg-white rounded-3xl shadow p-6 mb-6">
             <h2 className="text-2xl font-bold mb-5">Order Summary</h2>
 
-            <div className="space-y-3 text-gray-700">
+            <div className="space-y-4 text-gray-700">
               <p>
                 <strong>Plan:</strong> {plan}
               </p>
@@ -124,27 +142,97 @@ export default function Payment() {
           </div>
 
           <div className="bg-white rounded-3xl shadow p-6">
-            <h2 className="text-2xl font-bold mb-5">Pay To</h2>
-            <div className="space-y-5">
-              <div className="border rounded-2xl p-4">
-                <p className="font-semibold text-yellow-600">MTN</p>
-                <p>0762027171</p>
-                <p className="text-sm text-gray-500">SSENDIWALA JOSHUA</p>
-              </div>
+            <h2 className="text-2xl font-bold mb-5">Payment Options</h2>
+            <div className="grid gap-4">
+              {paymentMethods.map((item) => (
+                <button
+                  key={item}
+                  type="button"
+                  onClick={() => setMethod(item)}
+                  className={`w-full rounded-2xl border px-5 py-4 text-left text-lg font-semibold ${method === item ? 'border-blue-700 bg-blue-50' : 'border-slate-200 bg-white'}`}
+                >
+                  {item}
+                </button>
+              ))}
             </div>
+
+            {method === "Bank Transfer" && (
+              <div className="mt-5 rounded-3xl border border-slate-200 bg-slate-50 p-5">
+                <p className="font-semibold text-slate-700">Bank transfer details</p>
+                <p className="text-sm text-slate-500">Account: {bankDetails.accountName}</p>
+                <p className="text-sm text-slate-500">Bank: {bankDetails.bankName}</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <span className="rounded-full bg-white px-3 py-2 text-sm text-slate-700 border border-slate-200">{bankDetails.accountNumber}</span>
+                  <button
+                    type="button"
+                    onClick={() => copyToClipboard(bankDetails.accountNumber)}
+                    className="rounded-2xl bg-blue-600 px-4 py-2 text-white"
+                  >
+                    {copied === bankDetails.accountNumber ? "Copied" : "Copy"}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="bg-white rounded-3xl shadow p-6">
+            <h2 className="text-2xl font-bold mb-5">How to Submit Payment</h2>
+            <ol className="list-decimal space-y-3 pl-5 text-gray-700">
+              <li>Choose your payment method.</li>
+              <li>Send the exact amount to the listed account.</li>
+              <li>Enter the phone number and reference used for the transaction.</li>
+              <li>Submit the form so admin can verify your payment.</li>
+            </ol>
+            <p className="mt-4 text-sm text-slate-500">
+              Need help? Email <a className="text-blue-700" href={`mailto:${supportEmail}`}>{supportEmail}</a>.
+            </p>
           </div>
         </div>
 
         <div className="bg-white rounded-3xl shadow p-8">
           <h2 className="text-3xl font-bold mb-6">Submit Proof</h2>
 
-          <div className="grid grid-cols-2 gap-4 mb-6">
-            <button
-              onClick={() => setMethod("MTN")}
-              className={`p-4 rounded-2xl border font-semibold ${method === "MTN" ? "bg-yellow-400" : ""}`}
-            >
-              MTN
-            </button>
+          <div className="space-y-4 mb-6">
+            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+              <p className="font-semibold text-slate-700">Selected method</p>
+              <p className="text-slate-500">{method || "No method selected"}</p>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4">
+              <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                <p className="font-semibold text-slate-700">Use one of these methods</p>
+                <div className="mt-3 flex flex-wrap gap-3">
+                  {paymentMethods.map((item) => (
+                    <button
+                      key={item}
+                      type="button"
+                      onClick={() => setMethod(item)}
+                      className={`rounded-2xl border px-4 py-3 text-sm font-semibold ${method === item ? 'bg-blue-600 text-white' : 'bg-white text-slate-700'}`}
+                    >
+                      {item}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {method === "Bank Transfer" && (
+                <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                  <p className="font-semibold text-slate-700">Bank details</p>
+                  <p className="text-sm text-slate-500 mt-2">{bankDetails.accountName}</p>
+                  <p className="text-sm text-slate-500">{bankDetails.bankName}</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <span className="rounded-full bg-white px-3 py-2 text-sm text-slate-700 border border-slate-200">{bankDetails.accountNumber}</span>
+                    <button
+                      type="button"
+                      onClick={() => copyToClipboard(bankDetails.accountNumber)}
+                      className="rounded-2xl bg-blue-600 px-4 py-2 text-white"
+                    >
+                      {copied === bankDetails.accountNumber ? "Copied" : "Copy"}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           <input

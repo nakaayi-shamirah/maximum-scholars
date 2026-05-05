@@ -15,6 +15,8 @@ require("./models/Material");
 
 require("./models/LiveClass");
 
+require("./models/AppSetting");
+
 /* =========================
    CONFIG
 ========================= */
@@ -91,6 +93,10 @@ app.use(
 app.use(
   "/api/live",
   require("./routes/live")
+);
+app.use(
+  "/api/settings",
+  require("./routes/settings")
 );
 
 /* =========================
