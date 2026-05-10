@@ -2,12 +2,12 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const tabs = [
-  { id: "dashboard", label: "Dashboard" },
-  { id: "subjects", label: "Subjects" },
-  { id: "materials", label: "Materials" },
-  { id: "live", label: "Live Classes" },
-  { id: "profile", label: "Profile" },
-  { id: "about", label: "About" },
+  { id: "dashboard", label: "Dashboard", icon: "⊞" },
+  { id: "subjects",  label: "Subjects",  icon: "📚" },
+  { id: "materials", label: "Materials", icon: "📄" },
+  { id: "live",      label: "Live Classes", icon: "📡" },
+  { id: "profile",   label: "Profile",   icon: "👤" },
+  { id: "about",     label: "About",     icon: "ℹ️" },
 ];
 
 export default function Dashboard() {
@@ -25,45 +25,27 @@ export default function Dashboard() {
 
   useEffect(() => {
     const role = localStorage.getItem("role");
-    if (role !== "student") {
-      navigate("/login");
-      return;
-    }
+    if (role !== "student") { navigate("/login"); return; }
 
     const fetchUser = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await fetch(`${API}/api/users/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await fetch(`${API}/api/users/me`, { headers: { Authorization: `Bearer ${token}` } });
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || "Could not fetch user");
-        setUser(data);
-        setSubjects(data.subjects || []);
+        setUser(data); setSubjects(data.subjects || []);
         localStorage.setItem("user", JSON.stringify(data));
         localStorage.setItem("subjects", JSON.stringify(data.subjects || []));
-
-        if (data.subscription?.status !== "approved") {
-          navigate("/subjects");
-          return;
-        }
-      } catch (error) {
-        console.error(error);
-        navigate("/login");
-      }
+        if (data.subscription?.status !== "approved") { navigate("/subjects"); return; }
+      } catch { navigate("/login"); }
     };
 
     const fetchMaterials = async () => {
       try {
         const res = await fetch(`${API}/api/materials`);
         const data = await res.json();
-        if (Array.isArray(data)) {
-          setMaterials(data);
-          localStorage.setItem("materials", JSON.stringify(data));
-        }
-      } catch (error) {
-        console.error(error);
-      }
+        if (Array.isArray(data)) { setMaterials(data); localStorage.setItem("materials", JSON.stringify(data)); }
+      } catch {}
     };
 
     const fetchLive = async () => {
@@ -71,45 +53,26 @@ export default function Dashboard() {
         const res = await fetch(`${API}/api/live`);
         const data = await res.json();
         if (Array.isArray(data)) setLiveClasses(data);
-      } catch (error) {
-        console.error(error);
-      }
+      } catch {}
     };
 
-    const load = async () => {
-      await fetchUser();
-      await fetchMaterials();
-      await fetchLive();
-      setLoading(false);
-    };
-
-    load();
+    (async () => { await fetchUser(); await fetchMaterials(); await fetchLive(); setLoading(false); })();
   }, [navigate]);
 
-  const logout = () => {
-    localStorage.clear();
-    navigate("/");
-  };
+  const logout = () => { localStorage.clear(); navigate("/"); };
 
   const uploadPhoto = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+    const file = e.target.files[0]; if (!file) return;
     const reader = new FileReader();
-    reader.onload = () => {
-      setPhoto(reader.result);
-      localStorage.setItem("studentPhoto", reader.result);
-    };
+    reader.onload = () => { setPhoto(reader.result); localStorage.setItem("studentPhoto", reader.result); };
     reader.readAsDataURL(file);
   };
 
-  const myMaterials = materials.filter((material) => subjects.includes(material.subject));
-  const currentLive = liveClasses.find((live) => subjects.includes(live.subject) && live.status === "live");
+  const myMaterials = materials.filter(m => subjects.includes(m.subject));
+  const currentLive = liveClasses.find(l => subjects.includes(l.subject) && l.status === "live");
 
   const joinLive = () => {
-    if (!currentLive) {
-      alert("No active live class for your subjects.");
-      return;
-    }
+    if (!currentLive) { alert("No active live class for your subjects."); return; }
     localStorage.setItem("liveClassStatus", "started");
     localStorage.setItem("liveTeacher", currentLive.teacherName || "Teacher");
     localStorage.setItem("liveSubject", currentLive.subject);
@@ -117,96 +80,114 @@ export default function Dashboard() {
     navigate("/live");
   };
 
-  const theme = "bg-slate-100 text-slate-900";
-  const card = "rounded-3xl bg-white p-6 shadow";
+  const stats = [
+    { label: "Enrolled Subjects", value: subjects.length, variant: "primary" },
+    { label: "Study Materials", value: myMaterials.length, variant: "" },
+    { label: "Live Sessions", value: currentLive ? 1 : 0, variant: "" },
+    { label: "Status", value: "Active", variant: "gold" },
+  ];
 
   return (
-    <div className={`flex min-h-screen ${theme}`}>
-      {menuOpen && <div onClick={() => setMenuOpen(false)} className="fixed inset-0 z-40 bg-black/30 md:hidden" />}
+    <div style={{ display: "flex", minHeight: "100vh", background: "#F7F9FC" }}>
+      {/* Overlay */}
+      {menuOpen && <div className="sidebar-overlay" onClick={() => setMenuOpen(false)} />}
 
-      <aside className={`fixed z-50 h-full w-72 transform bg-gradient-to-b from-blue-700 to-indigo-900 text-white p-6 transition duration-300 md:relative md:translate-x-0 ${menuOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}>
-        <h1 className="text-3xl font-bold mb-8">Maximo Scholars</h1>
-        <nav className="space-y-3 text-sm">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => {
-                setActive(tab.id);
-                setMenuOpen(false);
-              }}
-              className={`w-full rounded-2xl px-4 py-3 text-left transition ${active === tab.id ? "bg-white/20" : "hover:bg-white/10"}`}
-            >
-              {tab.label}
+      {/* Sidebar */}
+      <aside className={`sidebar ${menuOpen ? "open" : ""}`}>
+        <div className="sidebar-logo">
+          Maximo Scholars<br />
+          <span className="tag">Student Portal</span>
+        </div>
+        <nav style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4 }}>
+          {tabs.map(tab => (
+            <button key={tab.id} className={`nav-btn ${active === tab.id ? "active" : ""}`}
+              onClick={() => { setActive(tab.id); setMenuOpen(false); }}>
+              <span>{tab.icon}</span> {tab.label}
             </button>
           ))}
         </nav>
-        <button onClick={logout} className="mt-8 w-full rounded-2xl bg-red-500 py-3 font-semibold">
-          Logout
-        </button>
-      </aside>
-
-      <main className="flex-1 p-6 md:p-10 md:ml-72">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between mb-8">
-          <div>
-            <p className="text-sm uppercase tracking-[0.25em] text-slate-500 mb-2">Student Dashboard</p>
-            <h1 className="text-4xl font-bold">Welcome back, {user.name}</h1>
-            <p className="text-slate-600 mt-2 max-w-2xl">Your learning progress, materials, and live sessions are all organized in one responsive student dashboard.</p>
-          </div>
-          <button className="md:hidden rounded-2xl bg-slate-800 px-4 py-3 text-white" onClick={() => setMenuOpen(true)}>
-            Menu
+        <div style={{ borderTop: "1px solid rgba(255,255,255,.08)", paddingTop: 16, marginTop: 16 }}>
+          <button onClick={logout} className="btn btn-danger" style={{ width: "100%", background: "rgba(220,38,38,.15)", color: "#FCA5A5", border: "1px solid rgba(220,38,38,.2)" }}>
+            Sign Out
           </button>
         </div>
+      </aside>
 
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4 mb-6">
-          <div className="rounded-3xl bg-gradient-to-r from-blue-700 to-indigo-700 p-6 text-white shadow-xl">
-            <p className="text-sm uppercase tracking-[0.2em]">Paid subjects</p>
-            <p className="mt-4 text-4xl font-bold">{subjects.length}</p>
+      {/* Main */}
+      <main className="main-content" style={{ flex: 1, padding: "32px 40px", minWidth: 0 }}>
+        {/* Top bar */}
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 32 }}>
+          <div className="animate-fadeUp">
+            <div className="section-label">Student Dashboard</div>
+            <h1 style={{ fontFamily: "'Sora', sans-serif", fontSize: "clamp(1.6rem, 2.5vw, 2.2rem)", fontWeight: 700, marginBottom: 6 }}>
+              Welcome back, {user.name?.split(" ")[0]} 👋
+            </h1>
+            <p style={{ color: "#64748B", fontSize: "0.925rem" }}>Your learning hub — subjects, materials, and live sessions all here.</p>
           </div>
-          <div className="rounded-3xl bg-white p-6 shadow-xl border border-slate-200">
-            <p className="text-sm uppercase tracking-[0.2em] text-slate-500">Available materials</p>
-            <p className="mt-4 text-4xl font-bold text-slate-900">{myMaterials.length}</p>
-          </div>
-          <div className="rounded-3xl bg-white p-6 shadow-xl border border-slate-200">
-            <p className="text-sm uppercase tracking-[0.2em] text-slate-500">Live sessions</p>
-            <p className="mt-4 text-4xl font-bold text-slate-900">{currentLive ? 1 : 0}</p>
-          </div>
-          <div className="rounded-3xl bg-white p-6 shadow-xl border border-slate-200">
-            <p className="text-sm uppercase tracking-[0.2em] text-slate-500">Learning status</p>
-            <p className="mt-4 text-4xl font-bold text-slate-900">Active</p>
-          </div>
+          <button className="btn btn-outline" style={{ display: "none" }} id="mobile-menu-btn" onClick={() => setMenuOpen(true)}>☰ Menu</button>
+          <button className="btn btn-outline" style={{ display: "block" }} onClick={() => setMenuOpen(true)}>☰</button>
+        </div>
+
+        {/* Stats */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 16, marginBottom: 28 }}>
+          {stats.map((s, i) => (
+            <div key={s.label} className={`stat-card ${s.variant} animate-fadeUp-${i + 1}`}>
+              <div className="stat-label">{s.label}</div>
+              <div className="stat-value">{s.value}</div>
+            </div>
+          ))}
         </div>
 
         {loading ? (
-          <div className={card}>Loading student dashboard...</div>
+          <div className="card" style={{ padding: 40, textAlign: "center", color: "#64748B" }}>
+            <div style={{ fontSize: "1.5rem", marginBottom: 8 }}>⏳</div>
+            Loading your dashboard…
+          </div>
         ) : (
-          <div className="space-y-6">
+          <div className="animate-fadeUp-2">
+
             {active === "dashboard" && (
-              <div className="grid gap-6">
-                <div className="rounded-3xl bg-white border border-slate-200 p-6 shadow-sm">
-                  <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                    <div>
-                      <p className="text-sm uppercase tracking-[0.2em] text-slate-500">Progress spotlight</p>
-                      <h2 className="text-2xl font-semibold mt-2">Keep learning with your active subjects.</h2>
-                    </div>
-                    <div className="rounded-3xl bg-slate-50 px-4 py-3 text-slate-700">
-                      Next live class: {currentLive ? currentLive.subject : "None scheduled"}
-                    </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                <div className="card" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 20, flexWrap: "wrap" }}>
+                  <div>
+                    <div className="section-label">Progress</div>
+                    <h2 style={{ fontFamily: "'Sora', sans-serif", fontSize: "1.25rem", fontWeight: 700, marginBottom: 4 }}>
+                      Keep learning with your active subjects
+                    </h2>
+                    <p style={{ color: "#64748B", fontSize: "0.875rem" }}>
+                      You have <strong>{subjects.length}</strong> enrolled subject{subjects.length !== 1 ? "s" : ""} and <strong>{myMaterials.length}</strong> available material{myMaterials.length !== 1 ? "s" : ""}.
+                    </p>
                   </div>
+                  <div style={{ background: "#F7F9FC", border: "1px solid #E2E8F2", borderRadius: 10, padding: "12px 18px", fontSize: "0.875rem", fontWeight: 500 }}>
+                    {currentLive ? (
+                      <span>🔴 Live now: <strong>{currentLive.subject}</strong></span>
+                    ) : (
+                      <span style={{ color: "#64748B" }}>📅 No live class scheduled</span>
+                    )}
+                  </div>
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 12 }}>
+                  {subjects.slice(0, 6).map(sub => (
+                    <div key={sub} style={{ background: "white", border: "1px solid #E2E8F2", borderRadius: 12, padding: "16px", textAlign: "center" }}>
+                      <div style={{ fontSize: "1.3rem", marginBottom: 6 }}>📚</div>
+                      <div style={{ fontWeight: 600, fontSize: "0.85rem" }}>{sub}</div>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
 
             {active === "subjects" && (
-              <div className={card}>
-                <h2 className="text-2xl font-semibold mb-4">Your Subjects</h2>
+              <div className="card">
+                <div className="section-label">Enrolled</div>
+                <h2 style={{ fontFamily: "'Sora', sans-serif", fontSize: "1.3rem", fontWeight: 700, marginBottom: 20 }}>Your Subjects</h2>
                 {subjects.length === 0 ? (
-                  <p className="text-slate-500">No paid subjects assigned yet.</p>
+                  <p style={{ color: "#64748B" }}>No subjects assigned yet. Complete your payment to get access.</p>
                 ) : (
-                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                    {subjects.map((subject) => (
-                      <div key={subject} className="rounded-3xl border p-5">
-                        <p className="font-semibold">{subject}</p>
-                      </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 12 }}>
+                    {subjects.map(sub => (
+                      <div key={sub} className="subject-pill" style={{ textAlign: "center", cursor: "default" }}>{sub}</div>
                     ))}
                   </div>
                 )}
@@ -214,31 +195,25 @@ export default function Dashboard() {
             )}
 
             {active === "materials" && (
-              <div className={card}>
-                <h2 className="text-2xl font-semibold mb-4">Materials</h2>
+              <div className="card">
+                <div className="section-label">Resources</div>
+                <h2 style={{ fontFamily: "'Sora', sans-serif", fontSize: "1.3rem", fontWeight: 700, marginBottom: 20 }}>Study Materials</h2>
                 {myMaterials.length === 0 ? (
-                  <p className="text-slate-500">No materials available for your subjects.</p>
+                  <p style={{ color: "#64748B" }}>No materials available for your subjects yet.</p>
                 ) : (
-                  <div className="grid gap-4 md:grid-cols-2">
-                    {myMaterials.map((item) => (
-                      <div key={item.id} className="rounded-3xl border border-slate-200 p-5 bg-slate-50 shadow-sm">
-                        <div className="flex flex-col gap-4">
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
+                    {myMaterials.map(item => (
+                      <div key={item.id} style={{ background: "#F7F9FC", border: "1px solid #E2E8F2", borderRadius: 14, padding: 20 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
                           <div>
-                            <p className="text-lg font-semibold">{item.title}</p>
-                            <p className="text-sm text-slate-500">{item.subject}</p>
+                            <div style={{ fontWeight: 600, marginBottom: 3 }}>{item.title}</div>
+                            <div style={{ fontSize: "0.8rem", color: "#64748B" }}>{item.subject}</div>
                           </div>
-                          <div className="flex flex-wrap items-center justify-between gap-3">
-                            <span className="rounded-full bg-white px-3 py-1 text-xs uppercase tracking-[0.15em] text-slate-600">{item.type || "Material"}</span>
-                            <a
-                              href={item.link}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="rounded-2xl bg-blue-600 px-4 py-2 text-white"
-                            >
-                              Open
-                            </a>
-                          </div>
+                          <span className="badge badge-blue">{item.type || "Material"}</span>
                         </div>
+                        <a href={item.link} target="_blank" rel="noreferrer" className="btn btn-primary btn-sm" style={{ textDecoration: "none", display: "inline-flex" }}>
+                          Open →
+                        </a>
                       </div>
                     ))}
                   </div>
@@ -247,65 +222,86 @@ export default function Dashboard() {
             )}
 
             {active === "live" && (
-              <div className={card}>
-                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div className="card">
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
                   <div>
-                    <h2 className="text-2xl font-semibold mb-1">Live Classes</h2>
-                    <p className="text-slate-500">Join your scheduled and ongoing sessions from one place.</p>
+                    <div className="section-label">Sessions</div>
+                    <h2 style={{ fontFamily: "'Sora', sans-serif", fontSize: "1.3rem", fontWeight: 700 }}>Live Classes</h2>
                   </div>
-                  {currentLive && (
-                    <span className="rounded-full bg-emerald-100 px-4 py-2 text-sm font-semibold text-emerald-700">Live Now</span>
-                  )}
+                  {currentLive && <span className="badge badge-live">Live Now</span>}
                 </div>
 
                 {currentLive ? (
-                  <div className="mt-6 grid gap-4 md:grid-cols-2">
-                    <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5 shadow-sm">
-                      <p className="text-lg font-semibold">{currentLive.subject}</p>
-                      <p className="mt-2 text-slate-600">Teacher: {currentLive.teacherName}</p>
-                      <p className="text-sm text-slate-500">Room: {currentLive.roomId}</p>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                    <div style={{ background: "#F7F9FC", border: "1px solid #E2E8F2", borderRadius: 14, padding: 20 }}>
+                      <div style={{ fontWeight: 700, fontSize: "1.1rem", marginBottom: 8 }}>{currentLive.subject}</div>
+                      <div style={{ color: "#64748B", fontSize: "0.875rem", marginBottom: 4 }}>Teacher: {currentLive.teacherName}</div>
+                      <div style={{ color: "#94A3B8", fontSize: "0.8rem" }}>Room: {currentLive.roomId}</div>
                     </div>
-                    <div className="rounded-3xl border border-slate-200 p-5 shadow-sm flex items-center justify-between">
+                    <div style={{ background: "#F0FDF4", border: "1px solid #A7F3D0", borderRadius: 14, padding: 20, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
                       <div>
-                        <p className="text-sm uppercase tracking-[0.2em] text-slate-500">Ready to join?</p>
-                        <p className="mt-2 text-xl font-semibold">Live session is available now.</p>
+                        <div style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#065F46", marginBottom: 4 }}>Ready to Join?</div>
+                        <div style={{ fontWeight: 600 }}>Live session is available now.</div>
                       </div>
-                      <button onClick={joinLive} className="rounded-2xl bg-blue-600 px-6 py-3 text-white">
-                        Join Now
+                      <button onClick={joinLive} className="btn btn-success" style={{ marginTop: 12, alignSelf: "flex-start" }}>
+                        Join Now →
                       </button>
                     </div>
                   </div>
                 ) : (
-                  <div className="mt-6 rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-6 text-slate-500">
-                    No active live class is running for your subjects yet. Check back later or contact your teacher for the next session.
+                  <div style={{ border: "2px dashed #E2E8F2", borderRadius: 14, padding: "40px 24px", textAlign: "center", color: "#94A3B8" }}>
+                    <div style={{ fontSize: "2rem", marginBottom: 8 }}>📡</div>
+                    No active live class running for your subjects. Check back later or contact your teacher.
                   </div>
                 )}
               </div>
             )}
 
             {active === "profile" && (
-              <div className={card}>
-                <h2 className="text-2xl font-semibold mb-4">Profile</h2>
-                <div className="grid gap-4 lg:grid-cols-2">
-                  <div className="space-y-3">
-                    <p className="font-semibold">{user.name}</p>
-                    <p className="text-slate-500">{user.email}</p>
-                    <p className="text-slate-500">Role: Student</p>
+              <div className="card">
+                <div className="section-label">Account</div>
+                <h2 style={{ fontFamily: "'Sora', sans-serif", fontSize: "1.3rem", fontWeight: 700, marginBottom: 24 }}>Your Profile</h2>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32 }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                    <div style={{ background: "#F7F9FC", border: "1px solid #E2E8F2", borderRadius: 12, padding: "14px 18px" }}>
+                      <div style={{ fontSize: "0.75rem", fontWeight: 600, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 4 }}>Full Name</div>
+                      <div style={{ fontWeight: 600 }}>{user.name}</div>
+                    </div>
+                    <div style={{ background: "#F7F9FC", border: "1px solid #E2E8F2", borderRadius: 12, padding: "14px 18px" }}>
+                      <div style={{ fontSize: "0.75rem", fontWeight: 600, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 4 }}>Email</div>
+                      <div style={{ fontWeight: 600 }}>{user.email}</div>
+                    </div>
+                    <div style={{ background: "#F7F9FC", border: "1px solid #E2E8F2", borderRadius: 12, padding: "14px 18px" }}>
+                      <div style={{ fontSize: "0.75rem", fontWeight: 600, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 4 }}>Role</div>
+                      <span className="badge badge-blue">Student</span>
+                    </div>
                   </div>
-                  <div className="space-y-3">
-                    <label className="block text-sm font-semibold">Upload Photo</label>
-                    <input type="file" onChange={uploadPhoto} className="w-full rounded-2xl border px-4 py-3" />
-                    {photo && <img className="h-40 w-40 rounded-3xl object-cover" src={photo} alt="student" />}
+                  <div>
+                    <div style={{ fontSize: "0.8rem", fontWeight: 600, color: "#475569", marginBottom: 10 }}>Profile Photo</div>
+                    {photo ? (
+                      <div style={{ marginBottom: 14 }}>
+                        <img src={photo} alt="student" style={{ width: 120, height: 120, borderRadius: 16, objectFit: "cover", border: "2px solid #E2E8F2" }} />
+                      </div>
+                    ) : (
+                      <div style={{ width: 120, height: 120, borderRadius: 16, background: "#F7F9FC", border: "2px dashed #E2E8F2", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "2.5rem", marginBottom: 14 }}>
+                        👤
+                      </div>
+                    )}
+                    <label style={{ cursor: "pointer" }}>
+                      <input type="file" onChange={uploadPhoto} style={{ display: "none" }} accept="image/*" />
+                      <span className="btn btn-outline btn-sm">📷 Upload Photo</span>
+                    </label>
                   </div>
                 </div>
               </div>
             )}
 
             {active === "about" && (
-              <div className={card}>
-                <h2 className="text-2xl font-semibold mb-4">About</h2>
-                <p>
-                  Maximum Scholars connects paid students with live classes, teachers and learning materials. Only paid subjects are available after approval.
+              <div className="card">
+                <div className="section-label">Platform</div>
+                <h2 style={{ fontFamily: "'Sora', sans-serif", fontSize: "1.3rem", fontWeight: 700, marginBottom: 16 }}>About Maximo Scholars</h2>
+                <p style={{ color: "#64748B", lineHeight: 1.75 }}>
+                  Maximo Scholars Uganda connects paid students with live classes, experienced teachers, and quality learning materials. Only approved, paid subjects are accessible after subscription approval.
                 </p>
               </div>
             )}
